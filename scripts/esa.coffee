@@ -4,6 +4,9 @@
 # Dependencies:
 #   None
 #
+# Commands:
+#    hubot esa stats - Retrieve stats of your team on esa
+#
 # Configuration:
 #   HUBOT_ESA_ACCESS_TOKEN
 #   HUBOT_ESA_TEAM_NAME
