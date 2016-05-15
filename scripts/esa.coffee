@@ -31,17 +31,16 @@ handleWebhook = (payload) ->
     when 'member_join'
       return "New member joined: #{payload.name}(#{payload.screen_name})"
     else
-      robot.logger.warning "Unknown Webhook received"
       return "Unknown Webhook received"
 
 class EsaClientRobot
   constructor: (@robot, @team, @access_token) ->
 
-  baseUrl: ->
+  baseUrl = ()->
     "https://api.esa.io/v1/teams/#{@team}"
 
   getRequest: (path, callback) ->
-    @robot.http("#{@baseUrl()}#{path}").query({access_token: @access_token}).get() (error, response, body) ->
+    @robot.http("#{baseUrl.call @}#{path}").query({access_token: @access_token}).get() (error, response, body) ->
       if response.statusCode is 200
         callback(JSON.parse(body))
       else
