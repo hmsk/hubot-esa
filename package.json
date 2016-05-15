@@ -1,0 +1,26 @@
+{
+  "name": "hubot-esa",
+  "version": "0.0.1",
+  "description": "A Hubot script handling webhooks and retrieving info from esa: https://esa.io",
+  "main": "index.coffee",
+  "scripts": {
+    "test": "script/test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://git@github.com/hmsk/hubot-esa.git"
+  },
+  "keywords": [
+    "hubot",
+    "hubot-scripts",
+    "esa"
+  ],
+  "author": "Kengo Hamasaki <k.hamasaki@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hmsk/hubot-esa/issues"
+  },
+  "dependencies": {
+    "coffee-script": "^1.10.0"
+  }
+}
