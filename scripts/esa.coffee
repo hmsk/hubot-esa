@@ -12,26 +12,31 @@
 #   HUBOT_ESA_TEAM_NAME
 #   HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
 #   HUBOT_ESA_WEBHOOK_ENDPOINT
+#   HUBOT_ESA_WEBHOOK_JUST_EMIT
 #
 # Author:
 #   hmsk <k.hamasaki@gmail.com>
 #
 
-handleWebhook = (payload) ->
+handleEsaWebhook = (payload) ->
   # https://docs.esa.io/posts/37
-  switch payload.kind
-    when 'post_create'
-      return "#{payload.user.screen_name} created a new post: #{if payload.post.wip then '(WIP) ' else ''}#{payload.post.name}\n>#{payload.post.message}\n#{payload.post.url}"
-    when 'post_update'
-      return "#{payload.user.screen_name} updated the post: #{if payload.post.wip then '(WIP) ' else ''}#{payload.post.name}\n>#{payload.post.message}\n#{payload.post.url}"
-    when 'post_archive'
-      return "#{payload.user.screen_name} archived the post: #{payload.post.name}\n#{payload.post.url}"
+  parsed =
+    kind: payload.kind
+    data:
+      team: payload.team.name
+      user: payload.user
+      post: null
+      comment: null
+
+  switch parsed.kind
+    when 'post_create', 'post_update', 'post_archive'
+      parsed.data.post = payload.post
     when 'comment_create'
-      return "#{payload.user.screen_name} posted a comment to #{payload.post.name}\n>#{payload.comment.body_md.replace("\n",'')}\n#{payload.post.url}"
-    when 'member_join'
-      return "New member joined: #{payload.name}(#{payload.screen_name})"
+      parsed.data.post = payload.post
+      parsed.data.comment = payload.comment
     else
-      return "Unknown Webhook received"
+      return null
+  return parsed
 
 class EsaClientRobot
   constructor: (@robot, @team, @access_token) ->
@@ -52,6 +57,7 @@ module.exports = (robot) ->
     token: process.env.HUBOT_ESA_ACCESS_TOKEN
     room: process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
     endpoint: process.env.HUBOT_ESA_WEBHOOK_ENDPOINT || '/hubot/esa'
+    just_emit: process.env.HUBOT_ESA_WEBHOOK_JUST_EMIT == 'true'
 
   return robot.logger.error "Missing configuration: HUBOT_ESA_TEAM" unless options.team?
   return robot.logger.error "Missing configuration: HUBOT_ESA_ACCESS_TOKEN" unless options.token?
@@ -65,21 +71,48 @@ module.exports = (robot) ->
       res.writeHead(403)
       res.end()
       return
-    robot.messageRoom options.room, handleWebhook(req.body or {})
+    parsed = handleEsaWebhook(req.body or {})
+    robot.emit 'esa.webhook', parsed.kind, parsed.data
     res.writeHead(204)
     res.end()
 
   robot.respond /esa stats/, (res) ->
     esa.getRequest("/stats", (stats) ->
-      res.send "Members: #{stats.members}\nPosts: #{stats.posts}\nComments: #{stats.comments}\nStars: #{stats.stars}\nDaily Active Users: #{stats.daily_active_users}\nWeekly Active Users: #{stats.weekly_active_users}\nMonthly Active Users: #{stats.monthly_active_users}"
+      robot.emit 'esa.hear.stats', res, stats
     )
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\b/, (res) ->
     unless res.match[1] == options.team then return
     esa.getRequest("/posts/#{res.match[2]}", (post) ->
-      res.send "esa: #{post.full_name}"
+      robot.emit 'esa.hear.post', res, post
     )
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)/, (res) ->
     unless res.match[1] == options.team then return
     esa.getRequest("/comments/#{res.match[3]}", (comment) ->
-      res.send "#{comment.body_md}"
+      robot.emit 'esa.hear.comment', res, comment
     )
+
+  unless options.just_emit
+    robot.on 'esa.webhook', (kind, data) ->
+      robot.messageRoom options.room = switch kind
+        when 'post_create'
+           "#{data.user.screen_name} created a new post: #{if data.post.wip then '(WIP) ' else ''}#{data.post.name}\n>#{data.post.message}\n#{data.post.url}"
+        when 'post_update'
+           "#{data.user.screen_name} updated the post: #{if data.post.wip then '(WIP) ' else ''}#{data.post.name}\n>#{data.post.message}\n#{data.post.url}"
+        when 'post_archive'
+           "#{data.user.screen_name} archived the post: #{data.post.name}\n#{data.post.url}"
+        when 'comment_create'
+           "#{data.user.screen_name} posted a comment to #{data.post.name}\n>#{data.comment.body_md.replace("\n",'')}\n#{data.post.url}"
+        when 'member_join'
+           "New member joined: #{data.user.name}(#{data.user.screen_name})"
+        else
+          robot.logger.warning "Unknown kind of Webhook received #{kind}"
+          "Unknown kind of Webhook received #{kind}"
+
+    robot.on 'esa.hear.stats', (res, stats) ->
+      res.send "Members: #{stats.members}\nPosts: #{stats.posts}\nComments: #{stats.comments}\nStars: #{stats.stars}\nDaily Active Users: #{stats.daily_active_users}\nWeekly Active Users: #{stats.weekly_active_users}\nMonthly Active Users: #{stats.monthly_active_users}"
+
+    robot.on 'esa.hear.post', (res, post) ->
+      res.send "esa: #{post.full_name}"
+
+    robot.on 'esa.hear.comment', (res, comment) ->
+      res.send "esa: #{comment.body_md}"
