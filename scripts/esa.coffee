@@ -93,7 +93,7 @@ module.exports = (robot) ->
 
   unless options.just_emit
     robot.on 'esa.webhook', (kind, data) ->
-      robot.messageRoom options.room = switch kind
+      robot.messageRoom options.room, switch kind
         when 'post_create'
            "#{data.user.screen_name} created a new post: #{if data.post.wip then '(WIP) ' else ''}#{data.post.name}\n>#{data.post.message}\n#{data.post.url}"
         when 'post_update'
