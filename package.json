@@ -1,6 +1,6 @@
 {
   "name": "hubot-esa",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Hubot script handling webhooks and retrieving info from esa: https://esa.io",
   "main": "index.coffee",
   "scripts": {
