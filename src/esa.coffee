@@ -80,12 +80,12 @@ module.exports = (robot) ->
     esa.getRequest("/stats", (stats) ->
       robot.emit 'esa.hear.stats', res, stats
     )
-  robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\b/, (res) ->
+  robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)(?!#comment-\d)\b/, (res) ->
     unless res.match[1] == options.team then return
     esa.getRequest("/posts/#{res.match[2]}", (post) ->
       robot.emit 'esa.hear.post', res, post
     )
-  robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)/, (res) ->
+  robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)\b/, (res) ->
     unless res.match[1] == options.team then return
     esa.getRequest("/comments/#{res.match[3]}", (comment) ->
       robot.emit 'esa.hear.comment', res, comment
