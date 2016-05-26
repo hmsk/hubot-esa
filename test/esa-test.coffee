@@ -173,6 +173,11 @@ describe 'esa', ->
           expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
           expect(emitted_data.post.name).to.equal 'たいとる'
 
+        it 'sends message', ->
+          expect(room.messages).to.eql [
+            ['hubot', "fukayatsu created a new post: たいとる\n>Create post.\nhttps://example.esa.io/posts/1253"]
+          ]
+
     describe 'as invalid request', ->
       context 'with unkown User-Agent', ->
         beforeEach (done) ->
