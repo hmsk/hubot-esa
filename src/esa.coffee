@@ -20,6 +20,11 @@
 
 handleEsaWebhook = (payload) ->
   # https://docs.esa.io/posts/37
+  if payload.kind is undefined || payload.team is undefined || payload.user is undefined
+    return {
+      kind: null
+      data: null
+    }
   parsed =
     kind: payload.kind
     data:
@@ -34,8 +39,6 @@ handleEsaWebhook = (payload) ->
     when 'comment_create'
       parsed.data.post = payload.post
       parsed.data.comment = payload.comment
-    else
-      return null
   return parsed
 
 class EsaClientRobot
@@ -105,7 +108,7 @@ module.exports = (robot) ->
         when 'member_join'
            "New member joined: #{data.user.name}(#{data.user.screen_name})"
         else
-          robot.logger.warning "Unknown kind of Webhook received #{kind}"
+          robot.logger.warning "Unknown kind of Webhook received: #{kind}"
           "Unknown kind of Webhook received #{kind}"
 
     robot.on 'esa.hear.stats', (res, stats) ->

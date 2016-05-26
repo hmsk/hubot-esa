@@ -1,30 +1,36 @@
 Helper = require('hubot-test-helper')
 chai = require 'chai'
+http = require 'http'
 nock = require 'nock'
 
 expect = chai.expect
 
 helper = new Helper('../src/esa.coffee')
+process.env.EXPRESS_PORT = 8039
 
 describe 'esa', ->
-  nockScope = null
   room = null
 
   beforeEach ->
     process.env.HUBOT_ESA_ACCESS_TOKEN = 'dummy'
     process.env.HUBOT_ESA_TEAM = 'ginger'
     process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM = 'general'
-    # process.env.HUBOT_ESA_WEBHOOK_ENDPOINT = '/hubot/ginger'
+    process.env.HUBOT_ESA_WEBHOOK_ENDPOINT = '/hubot/ginger'
     # process.env.HUBOT_ESA_WEBHOOK_JUST_EMIT = 'true'
-    nock.disableNetConnect()
-    nockScope = nock('https://api.esa.io')
     room = helper.createRoom()
 
   afterEach ->
-    nock.cleanAll()
     room.destroy()
 
-  describe 'get from api', ->
+  describe 'Response to chatroom', ->
+    nockScope = null
+    beforeEach ->
+      nock.disableNetConnect()
+      nockScope = nock('https://api.esa.io')
+
+    afterEach ->
+      nock.cleanAll()
+
     context 'someone requests stats', ->
       beforeEach (done) ->
         nockScope
@@ -105,3 +111,68 @@ describe 'esa', ->
           expect(room.messages).to.eql [
             ['gingy', 'https://zachary.esa.io/posts/1390#comment-2121']
           ]
+
+  describe 'Receive webhook', ->
+    http_opt = null
+    emitted = null
+    emitted_kind = null
+    emitted_data = null
+
+    beforeEach ->
+      emitted = false
+      emitted_data = null
+      emitted_kind = null
+      room.robot.on 'esa.webhook', (kind, data) ->
+        emitted = true
+        emitted_kind = kind
+        emitted_data = data
+      nock.enableNetConnect()
+      http_opt =
+        hostname: 'localhost'
+        port: 8039
+        path: '/hubot/ginger'
+        method: 'POST'
+        headers:
+          'Content-Type': 'application/json',
+          'User-Agent': 'esa-Hookshot/v1'
+
+    afterEach ->
+      nock.disableNetConnect()
+
+    describe 'as valid request', ->
+      context 'with unknown formated body', ->
+        beforeEach (done) ->
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write('{}')
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'emits esa.webhook event', ->
+          expect(emitted).to.equal true
+          expect(emitted_kind).to.equal null
+          expect(emitted_data).to.equal null
+
+      context 'with post_create event data', ->
+        beforeEach (done) ->
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write('{}')
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+    describe 'as invalid request', ->
+      context 'with unkown User-Agent', ->
+        beforeEach (done) ->
+          http_opt['headers']['User-Agent'] = 'gingypurrs'
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write('{}')
+          req.end()
+
+        it 'responds with status 403', ->
+          expect(@res.statusCode).to.equal 403
