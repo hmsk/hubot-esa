@@ -2,6 +2,7 @@ Helper = require('hubot-test-helper')
 chai = require 'chai'
 http = require 'http'
 nock = require 'nock'
+fs = require 'fs'
 
 expect = chai.expect
 
@@ -159,11 +160,18 @@ describe 'esa', ->
         beforeEach (done) ->
           req = http.request http_opt, (@res) => done()
           .on 'error', done
-          req.write('{}')
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_post_create.json"))
           req.end()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
+
+        it 'emits esa.webhook event with args', ->
+          expect(emitted).to.equal true
+          expect(emitted_kind).to.equal 'post_create'
+          expect(emitted_data.team).to.equal 'esa'
+          expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
+          expect(emitted_data.post.name).to.equal 'たいとる'
 
     describe 'as invalid request', ->
       context 'with unkown User-Agent', ->
