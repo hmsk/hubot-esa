@@ -156,6 +156,11 @@ describe 'esa', ->
           expect(emitted_kind).to.equal null
           expect(emitted_data).to.equal null
 
+        it 'sends message', ->
+          expect(room.messages).to.eql [
+            ['hubot', "Unknown kind of Webhook received null"]
+          ]
+
       context 'with post_create event data', ->
         beforeEach (done) ->
           req = http.request http_opt, (@res) => done()
@@ -172,10 +177,105 @@ describe 'esa', ->
           expect(emitted_data.team).to.equal 'esa'
           expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
           expect(emitted_data.post.name).to.equal 'たいとる'
+          expect(emitted_data.comment).to.equal null
 
         it 'sends message', ->
           expect(room.messages).to.eql [
             ['hubot', "fukayatsu created a new post: たいとる\n>Create post.\nhttps://example.esa.io/posts/1253"]
+          ]
+
+
+      context 'with post_update event data', ->
+        beforeEach (done) ->
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_post_update.json"))
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'emits esa.webhook event with args', ->
+          expect(emitted).to.equal true
+          expect(emitted_kind).to.equal 'post_update'
+          expect(emitted_data.team).to.equal 'esa'
+          expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
+          expect(emitted_data.post.name).to.equal 'たいとる'
+          expect(emitted_data.comment).to.equal null
+
+        it 'sends message', ->
+          expect(room.messages).to.eql [
+            ['hubot', "fukayatsu updated the post: たいとる\n>Update post.\nhttps://example.esa.io/posts/1253"]
+          ]
+
+
+      context 'with post_archive event data', ->
+        beforeEach (done) ->
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_post_archive.json"))
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'emits esa.webhook event with args', ->
+          expect(emitted).to.equal true
+          expect(emitted_kind).to.equal 'post_archive'
+          expect(emitted_data.team).to.equal 'esa'
+          expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
+          expect(emitted_data.post.name).to.equal 'Archived/たいとる'
+          expect(emitted_data.comment).to.equal null
+
+        it 'sends message', ->
+          expect(room.messages).to.eql [
+            ['hubot', "fukayatsu archived the post: Archived/たいとる\nhttps://example.esa.io/posts/1253"]
+          ]
+
+      context 'with comment_create event data', ->
+        beforeEach (done) ->
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_comment_create.json"))
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'emits esa.webhook event with args', ->
+          expect(emitted).to.equal true
+          expect(emitted_kind).to.equal 'comment_create'
+          expect(emitted_data.team).to.equal 'esa'
+          expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
+          expect(emitted_data.post.name).to.equal 'Archived/たいとる'
+          expect(emitted_data.comment.body_md).to.equal 'こめんと'
+
+        it 'sends message', ->
+          expect(room.messages).to.eql [
+            ['hubot', "fukayatsu posted a comment to Archived/たいとる\n>こめんと\nhttps://example.esa.io/posts/1253#comment-6385"]
+          ]
+
+      context 'with member_join event data', ->
+        beforeEach (done) ->
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_member_join.json"))
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'emits esa.webhook event with args', ->
+          expect(emitted).to.equal true
+          expect(emitted_kind).to.equal 'member_join'
+          expect(emitted_data.team).to.equal 'esa'
+          expect(emitted_data.user.screen_name).to.equal 'fukayatsu'
+          expect(emitted_data.post).to.equal null
+          expect(emitted_data.comment).to.equal null
+
+        it 'sends message', ->
+          expect(room.messages).to.eql [
+            ['hubot', "New member joined: Atsuo Fukaya(fukayatsu)"]
           ]
 
     describe 'as invalid request', ->
