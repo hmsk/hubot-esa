@@ -33,7 +33,12 @@ describe 'esa', ->
       nock.cleanAll()
 
     context 'someone requests stats', ->
+      emitted = false
+      emitted_stats = null
       beforeEach (done) ->
+        room.robot.on 'esa.hear.stats', (res, stats) ->
+          emitted = true
+          emitted_stats = stats
         nockScope
           .get("/v1/teams/#{process.env.HUBOT_ESA_TEAM}/stats")
           .query(access_token: process.env.HUBOT_ESA_ACCESS_TOKEN)
@@ -47,9 +52,18 @@ describe 'esa', ->
           ['hubot', "Members: 20\nPosts: 1959\nComments: 2695\nStars: 3115\nDaily Active Users: 8\nWeekly Active Users: 14\nMonthly Active Users: 15"]
         ]
 
+      it 'emits esa.hear.stats event with args', ->
+        expect(emitted).to.equal true
+        expect(emitted_stats.members).to.equal 20
+
     describe 'post', ->
       context 'in own team', ->
+        emitted = false
+        emitted_post = null
         beforeEach ->
+          room.robot.on 'esa.hear.post', (res, post) ->
+            emitted = true
+            emitted_post = post
           nockScope
             .get("/v1/teams/#{process.env.HUBOT_ESA_TEAM}/posts/1390")
             .query(access_token: process.env.HUBOT_ESA_ACCESS_TOKEN)
@@ -65,6 +79,10 @@ describe 'esa', ->
               ['gingy', 'https://ginger.esa.io/posts/1390']
               ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev']
             ]
+
+          it 'emits esa.hear.post event with args', ->
+            expect(emitted).to.equal true
+            expect(emitted_post.name).to.equal 'hi!'
 
         context 'someone says post url wtih anchor', ->
           beforeEach (done) ->
@@ -89,7 +107,12 @@ describe 'esa', ->
 
     describe 'comment', ->
       context 'in own team', ->
+        emitted = false
+        emitted_comment = null
         beforeEach (done) ->
+          room.robot.on 'esa.hear.comment', (res, comment) ->
+            emitted = true
+            emitted_comment = comment
           nockScope
             .get("/v1/teams/#{process.env.HUBOT_ESA_TEAM}/comments/2121")
             .query(access_token: process.env.HUBOT_ESA_ACCESS_TOKEN)
@@ -102,6 +125,10 @@ describe 'esa', ->
             ['gingy', 'https://ginger.esa.io/posts/1390#comment-2121']
             ['hubot', 'esa: 読みたい']
           ]
+
+        it 'emits esa.hear.comment event with args', ->
+          expect(emitted).to.equal true
+          expect(emitted_comment.body_md).to.equal '読みたい'
 
       context 'in other team, someone says comment url', ->
         beforeEach (done) ->
