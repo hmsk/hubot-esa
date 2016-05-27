@@ -7,7 +7,7 @@ A Hubot script handling webhooks and retrieving info from esa: https://esa.io
 
 ## Features
 
-### Retrieve information from esa
+### Retrieve info when someone talking about URL of esa
 
 #### Post
 
@@ -17,13 +17,13 @@ A Hubot script handling webhooks and retrieving info from esa: https://esa.io
 
 ![image](https://cloud.githubusercontent.com/assets/85887/15594944/73b3c26e-236f-11e6-921b-7a78dadf0489.png)
 
-### Retrieve stats your team on esa
+### Retrieve stats of your team
 
 - Command: `hubot esa stats`
 
 ![image](https://cloud.githubusercontent.com/assets/85887/15595025/29e6acfe-2370-11e6-9564-6d62f3288701.png)
 
-### Handle webhooks from your team on esa
+### Handle webhooks
 
 ![image](https://cloud.githubusercontent.com/assets/85887/15594882/c5362c18-236e-11e6-8b0f-736d07696933.png)
 
@@ -35,7 +35,7 @@ $ npm install hubot-esa --save
 
 And then add `hubot-esa` to your `external-scripts.json`.
 
-Also you should set some variables to environment your Hubot runs.
+Also you need some variables to environment your Hubot runs.
 
 ### Add to your Hubot project
 
@@ -44,9 +44,9 @@ Also you should set some variables to environment your Hubot runs.
 ```
 export HUBOT_ESA_ACCESS_TOKEN='access_token'    # Required, your personal access token
 export HUBOT_ESA_TEAM_NAME='gingypurrs'         # Required, your team name
-export HUBOT_ESA_WEBHOOK_DEFAULT_ROOM='random'  # Required
+export HUBOT_ESA_WEBHOOK_DEFAULT_ROOM='random'  # Required, room name you get notification by webhook
 export HUBOT_ESA_WEBHOOK_ENDPOINT='/ginger/esa' # Optional, Default: "/hubot/esa"
-export HUBOT_ESA_WEBHOOK_JUST_EMIT=true         # Optional, Default: false
+export HUBOT_ESA_WEBHOOK_JUST_EMIT='true'       # Optional, Default: "false"
 ```
 
 - `HUBOT_ESA_ACCESS_TOKEN`
@@ -119,7 +119,7 @@ robot.on 'esa.webhook', (kind, data) ->
 data:
   team: 'team name'
   user: 'user object by webhook'
-  post: 'post object by webhook' #
+  post: 'post object by webhook'
   comment: 'comment object by webhook'
 ```
 
