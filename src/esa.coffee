@@ -104,8 +104,9 @@ module.exports = (robot) ->
       robot.emit 'esa.hear.comment', res, comment
 
   unless options.just_emit
+    prefix_tori = '(\\( ⁰⊖⁰)\/) '
     robot.on 'esa.webhook', (kind, data) ->
-      robot.messageRoom options.room, switch kind
+      robot.messageRoom options.room, prefix_tori + switch kind
         when 'post_create'
            "#{data.user.screen_name} created a new post: #{if data.post.wip then '(WIP) ' else ''}#{data.post.name}\n>#{data.post.message}\n#{data.post.url}"
         when 'post_update'
@@ -124,9 +125,9 @@ module.exports = (robot) ->
       res.send "Members: #{stats.members}\nPosts: #{stats.posts}\nComments: #{stats.comments}\nStars: #{stats.stars}\nDaily Active Users: #{stats.daily_active_users}\nWeekly Active Users: #{stats.weekly_active_users}\nMonthly Active Users: #{stats.monthly_active_users}"
 
     robot.on 'esa.hear.post', (res, post) ->
-      mes = "esa: #{post.full_name}\nStars: #{post.stargazers_count}, Watchers: #{post.watchers_count}, Comments: #{post.comments_count}"
+      mes = prefix_tori + "#{post.full_name}\nStars: #{post.stargazers_count}, Watchers: #{post.watchers_count}, Comments: #{post.comments_count}"
       mes += ", Tasks: #{post.done_tasks_count}/#{post.tasks_count}" if post.tasks_count > 0
       res.send  mes
 
     robot.on 'esa.hear.comment', (res, comment) ->
-      res.send "esa: #{comment.body_md}"
+      res.send prefix_tori + "#{comment.body_md}"

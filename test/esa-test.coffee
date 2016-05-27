@@ -12,6 +12,9 @@ process.env.EXPRESS_PORT = 8039
 describe 'esa', ->
   room = null
 
+  lastMessageBody = ()->
+    room.messages[room.messages.length - 1][1]
+
   beforeEach ->
     process.env.HUBOT_ESA_ACCESS_TOKEN = 'dummy'
     process.env.HUBOT_ESA_TEAM = 'ginger'
@@ -47,10 +50,7 @@ describe 'esa', ->
         setTimeout done, 200
 
       it 'responds stats', ->
-        expect(room.messages).to.eql [
-          ['gingy', '@hubot esa stats']
-          ['hubot', "Members: 20\nPosts: 1959\nComments: 2695\nStars: 3115\nDaily Active Users: 8\nWeekly Active Users: 14\nMonthly Active Users: 15"]
-        ]
+        expect(lastMessageBody()).contain("Members: 20\nPosts: 1959\nComments: 2695\nStars: 3115\nDaily Active Users: 8\nWeekly Active Users: 14\nMonthly Active Users: 15")
 
       it 'emits esa.hear.stats event with args', ->
         expect(emitted).to.equal true
@@ -75,10 +75,7 @@ describe 'esa', ->
             setTimeout done, 200
 
           it 'send message about post', ->
-            expect(room.messages).to.eql [
-              ['gingy', 'https://ginger.esa.io/posts/1390']
-              ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev\nStars: 1, Watchers: 1, Comments: 1, Tasks: 1/1']
-            ]
+            expect(lastMessageBody()).contain('日報/2015/05/09/hi! #api #dev\nStars: 1, Watchers: 1, Comments: 1, Tasks: 1/1')
 
           it 'emits esa.hear.post event with args', ->
             expect(emitted).to.equal true
@@ -90,10 +87,7 @@ describe 'esa', ->
             setTimeout done, 200
 
           it 'send message about post', ->
-            expect(room.messages).to.eql [
-              ['gingy', 'https://ginger.esa.io/posts/1390#1-1-1']
-              ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev\nStars: 1, Watchers: 1, Comments: 1, Tasks: 1/1']
-            ]
+            expect(lastMessageBody()).contain('日報/2015/05/09/hi! #api #dev\nStars: 1, Watchers: 1, Comments: 1, Tasks: 1/1')
 
       context 'in other team, someone says post url', ->
         beforeEach (done) ->
@@ -121,10 +115,7 @@ describe 'esa', ->
           setTimeout done, 200
 
         it 'send message about comment', ->
-          expect(room.messages).to.eql [
-            ['gingy', 'https://ginger.esa.io/posts/1390#comment-2121']
-            ['hubot', 'esa: 読みたい']
-          ]
+          expect(lastMessageBody()).contain("読みたい")
 
         it 'emits esa.hear.comment event with args', ->
           expect(emitted).to.equal true
@@ -184,9 +175,7 @@ describe 'esa', ->
           expect(emitted_data).to.equal null
 
         it 'sends message', ->
-          expect(room.messages).to.eql [
-            ['hubot', "Unknown kind of Webhook received null"]
-          ]
+          expect(lastMessageBody()).contain("Unknown kind of Webhook received null")
 
       context 'with post_create event data', ->
         beforeEach (done) ->
@@ -207,10 +196,7 @@ describe 'esa', ->
           expect(emitted_data.comment).to.equal null
 
         it 'sends message', ->
-          expect(room.messages).to.eql [
-            ['hubot', "fukayatsu created a new post: たいとる\n>Create post.\nhttps://example.esa.io/posts/1253"]
-          ]
-
+          expect(lastMessageBody()).contain("fukayatsu created a new post: たいとる\n>Create post.\nhttps://example.esa.io/posts/1253")
 
       context 'with post_update event data', ->
         beforeEach (done) ->
@@ -231,10 +217,7 @@ describe 'esa', ->
           expect(emitted_data.comment).to.equal null
 
         it 'sends message', ->
-          expect(room.messages).to.eql [
-            ['hubot', "fukayatsu updated the post: たいとる\n>Update post.\nhttps://example.esa.io/posts/1253"]
-          ]
-
+          expect(lastMessageBody()).contain("fukayatsu updated the post: たいとる\n>Update post.\nhttps://example.esa.io/posts/1253")
 
       context 'with post_archive event data', ->
         beforeEach (done) ->
@@ -255,9 +238,7 @@ describe 'esa', ->
           expect(emitted_data.comment).to.equal null
 
         it 'sends message', ->
-          expect(room.messages).to.eql [
-            ['hubot', "fukayatsu archived the post: Archived/たいとる\nhttps://example.esa.io/posts/1253"]
-          ]
+          expect(lastMessageBody()).contain("fukayatsu archived the post: Archived/たいとる\nhttps://example.esa.io/posts/1253")
 
       context 'with comment_create event data', ->
         beforeEach (done) ->
@@ -278,9 +259,7 @@ describe 'esa', ->
           expect(emitted_data.comment.body_md).to.equal 'こめんと'
 
         it 'sends message', ->
-          expect(room.messages).to.eql [
-            ['hubot', "fukayatsu posted a comment to Archived/たいとる\n>こめんと\nhttps://example.esa.io/posts/1253#comment-6385"]
-          ]
+          expect(lastMessageBody()).contain("fukayatsu posted a comment to Archived/たいとる\n>こめんと\nhttps://example.esa.io/posts/1253#comment-6385")
 
       context 'with member_join event data', ->
         beforeEach (done) ->
@@ -301,9 +280,7 @@ describe 'esa', ->
           expect(emitted_data.comment).to.equal null
 
         it 'sends message', ->
-          expect(room.messages).to.eql [
-            ['hubot', "New member joined: Atsuo Fukaya(fukayatsu)"]
-          ]
+          expect(lastMessageBody()).contain("New member joined: Atsuo Fukaya(fukayatsu)")
 
     describe 'as invalid request', ->
       context 'with unkown User-Agent', ->
