@@ -47,12 +47,24 @@ class EsaClientRobot
   baseUrl = ()->
     "https://api.esa.io/v1/teams/#{@team}"
 
-  getRequest: (path, callback) ->
+  getRequest = (path, callback) ->
     @robot.http("#{baseUrl.call @}#{path}").query({access_token: @access_token}).get() (error, response, body) ->
       if response.statusCode is 200
         callback(JSON.parse(body))
       else
         @robot.logger.warning "esa API GET request failed: #{error}"
+
+  getTeam: (callback) ->
+    getRequest.call @, "", callback
+
+  getStats: (callback) ->
+    getRequest.call @, "/stats", callback
+
+  getPost: (post_id, callback) ->
+    getRequest.call @, "/posts/#{post_id}", callback
+
+  getComment: (comment_id, callback) ->
+    getRequest.call @, "/comments/#{comment_id}", callback
 
 module.exports = (robot) ->
   options =
@@ -80,15 +92,15 @@ module.exports = (robot) ->
     res.end()
 
   robot.respond /esa stats/, (res) ->
-    esa.getRequest "/stats", (stats) ->
+    esa.getStats (stats) ->
       robot.emit 'esa.hear.stats', res, stats
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)(?!(\#comment-\d+))\b/, (res) ->
     unless res.match[1] == options.team then return
-    esa.getRequest "/posts/#{res.match[2]}", (post) ->
+    esa.getPost res.match[2], (post) ->
       robot.emit 'esa.hear.post', res, post
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)\b/, (res) ->
     unless res.match[1] == options.team then return
-    esa.getRequest "/comments/#{res.match[3]}", (comment) ->
+    esa.getComment res.match[3], (comment) ->
       robot.emit 'esa.hear.comment', res, comment
 
   unless options.just_emit
