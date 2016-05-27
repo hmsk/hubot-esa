@@ -12,7 +12,7 @@
 #   HUBOT_ESA_TEAM
 #   HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
 #   HUBOT_ESA_WEBHOOK_ENDPOINT
-#   HUBOT_ESA_WEBHOOK_JUST_EMIT
+#   HUBOT_ESA_JUST_EMIT
 #
 # Author:
 #   hmsk <k.hamasaki@gmail.com>
@@ -60,7 +60,7 @@ module.exports = (robot) ->
     token: process.env.HUBOT_ESA_ACCESS_TOKEN
     room: process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
     endpoint: process.env.HUBOT_ESA_WEBHOOK_ENDPOINT || '/hubot/esa'
-    just_emit: process.env.HUBOT_ESA_WEBHOOK_JUST_EMIT == 'true'
+    just_emit: process.env.HUBOT_ESA_JUST_EMIT == 'true'
 
   return robot.logger.error "Missing configuration: HUBOT_ESA_TEAM" unless options.team?
   return robot.logger.error "Missing configuration: HUBOT_ESA_ACCESS_TOKEN" unless options.token?

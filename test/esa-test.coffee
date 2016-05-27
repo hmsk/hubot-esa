@@ -17,7 +17,7 @@ describe 'esa', ->
     process.env.HUBOT_ESA_TEAM = 'ginger'
     process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM = 'general'
     process.env.HUBOT_ESA_WEBHOOK_ENDPOINT = '/hubot/ginger'
-    # process.env.HUBOT_ESA_WEBHOOK_JUST_EMIT = 'true'
+    # process.env.HUBOT_ESA_JUST_EMIT = 'true'
     room = helper.createRoom()
 
   afterEach ->
