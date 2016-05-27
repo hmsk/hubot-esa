@@ -23,9 +23,6 @@
   "peerDependencies": {
     "hubot": "2.x"
   },
-  "dependencies": {
-    "nock": "^8.0.0"
-  },
   "devDependencies": {
     "hubot-test-helper": "^1.3.0",
     "chai": "^2.1.1",
@@ -39,6 +36,7 @@
     "matchdep": "~0.3.0",
     "mocha": "^2.1.0",
     "sinon": "^1.13.0",
-    "sinon-chai": "^2.7.0"
+    "sinon-chai": "^2.7.0",
+    "nock": "^8.0.0"
   }
 }
