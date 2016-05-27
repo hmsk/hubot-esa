@@ -124,7 +124,9 @@ module.exports = (robot) ->
       res.send "Members: #{stats.members}\nPosts: #{stats.posts}\nComments: #{stats.comments}\nStars: #{stats.stars}\nDaily Active Users: #{stats.daily_active_users}\nWeekly Active Users: #{stats.weekly_active_users}\nMonthly Active Users: #{stats.monthly_active_users}"
 
     robot.on 'esa.hear.post', (res, post) ->
-      res.send "esa: #{post.full_name}"
+      mes = "esa: #{post.full_name}\nStars: #{post.stargazers_count}, Watchers: #{post.watchers_count}, Comments: #{post.comments_count}"
+      mes += ", Tasks: #{post.done_tasks_count}/#{post.tasks_count}" if post.tasks_count > 0
+      res.send  mes
 
     robot.on 'esa.hear.comment', (res, comment) ->
       res.send "esa: #{comment.body_md}"

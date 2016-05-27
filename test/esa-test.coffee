@@ -77,7 +77,7 @@ describe 'esa', ->
           it 'send message about post', ->
             expect(room.messages).to.eql [
               ['gingy', 'https://ginger.esa.io/posts/1390']
-              ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev']
+              ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev\nStars: 1, Watchers: 1, Comments: 1, Tasks: 1/1']
             ]
 
           it 'emits esa.hear.post event with args', ->
@@ -92,7 +92,7 @@ describe 'esa', ->
           it 'send message about post', ->
             expect(room.messages).to.eql [
               ['gingy', 'https://ginger.esa.io/posts/1390#1-1-1']
-              ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev']
+              ['hubot', 'esa: 日報/2015/05/09/hi! #api #dev\nStars: 1, Watchers: 1, Comments: 1, Tasks: 1/1']
             ]
 
       context 'in other team, someone says post url', ->
