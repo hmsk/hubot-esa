@@ -1,5 +1,8 @@
 # hubot-esa
 
+[![npm](http://img.shields.io/npm/v/hubot-esa.svg)](npm)
+[![CircleCI](https://img.shields.io/circleci/project/hmsk/hubot-esa.svg)](circle ci)
+
 A Hubot script handling webhooks and retrieving info from esa: https://esa.io
 
 ## Features
