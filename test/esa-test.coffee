@@ -153,7 +153,8 @@ describe 'esa', ->
         method: 'POST'
         headers:
           'Content-Type': 'application/json',
-          'User-Agent': 'esa-Hookshot/v1'
+          'User-Agent': 'esa-Hookshot/v1',
+          'X-Esa-Delivery': '1234'
 
     afterEach ->
       nock.disableNetConnect()
@@ -281,6 +282,23 @@ describe 'esa', ->
 
         it 'sends message', ->
           expect(lastMessageBody()).contain("New member joined: Atsuo Fukaya(fukayatsu)")
+
+      context 'with already hooked data', ->
+        beforeEach (done) ->
+          room.robot.brain.set 'esaWebhookDeliveries', ['1234']
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_member_join.json"))
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'not emit esa.webhook event', ->
+          expect(emitted).to.equal false
+
+        it 'not sends message', ->
+          expect(room.messages).to.be.empty
 
     describe 'as invalid request', ->
       context 'with unkown User-Agent', ->

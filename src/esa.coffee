@@ -86,6 +86,16 @@ module.exports = (robot) ->
       res.writeHead(403)
       res.end()
       return
+    deliveries = robot.brain.get('esaWebhookDeliveries') or []
+    if req.headers['x-esa-delivery']
+      if deliveries.indexOf(req.headers['x-esa-delivery']) > -1
+        res.writeHead(204)
+        res.end()
+        return
+      else
+        deliveries.push req.headers['x-esa-delivery']
+        robot.brain.set 'esaWebhookDeliveries', deliveries
+
     parsed = handleEsaWebhook(req.body or {})
     robot.emit 'esa.webhook', parsed.kind, parsed.data
     res.writeHead(204)
