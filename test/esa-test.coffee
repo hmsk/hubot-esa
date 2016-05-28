@@ -283,8 +283,9 @@ describe 'esa', ->
         it 'sends message', ->
           expect(lastMessageBody()).contain("New member joined: Atsuo Fukaya(fukayatsu)")
 
-      context 'with already hooked data', ->
+      context 'with recently and duplicated hooked data', ->
         beforeEach (done) ->
+          room.robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime()
           room.robot.brain.set 'esaWebhookDeliveries', ['1234']
           req = http.request http_opt, (@res) => done()
           .on 'error', done
@@ -299,6 +300,24 @@ describe 'esa', ->
 
         it 'not sends message', ->
           expect(room.messages).to.be.empty
+
+      context 'with duplicated but old hooked data', ->
+        beforeEach (done) ->
+          room.robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime() - 3600 * 1000 * 24 * 3
+          room.robot.brain.set 'esaWebhookDeliveries', ['1234']
+          req = http.request http_opt, (@res) => done()
+          .on 'error', done
+          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_member_join.json"))
+          req.end()
+
+        it 'responds with status 204', ->
+          expect(@res.statusCode).to.equal 204
+
+        it 'not emit esa.webhook event', ->
+          expect(emitted).to.equal true
+
+        it 'not sends message', ->
+          expect(room.messages).to.not.be.empty
 
     describe 'as invalid request', ->
       context 'with unkown User-Agent', ->

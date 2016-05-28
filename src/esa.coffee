@@ -86,6 +86,12 @@ module.exports = (robot) ->
       res.writeHead(403)
       res.end()
       return
+
+    lastFlushedAt = robot.brain.get('esaWebhookLogsLastFlushedDateTime') or new Date().getTime() - 3600 * 1000 * 24 * 2
+    if lastFlushedAt < (new Date().getTime() - 3600 * 1000 * 24)
+      robot.brain.set 'esaWebhookDeliveries', []
+      robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime()
+
     deliveries = robot.brain.get('esaWebhookDeliveries') or []
     if req.headers['x-esa-delivery']
       if deliveries.indexOf(req.headers['x-esa-delivery']) > -1
