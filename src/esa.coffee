@@ -87,7 +87,7 @@ module.exports = (robot) ->
     # https://docs.esa.io/posts/37#3-4-0
     unless req.headers['user-agent'] == 'esa-Hookshot/v1'
       robot.logger.warning "Requested unknown user agent: #{req.headers['user-agent']}"
-      res.writeHead(403)
+      res.writeHead(401)
       res.end()
       return
 

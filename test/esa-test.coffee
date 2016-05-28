@@ -338,5 +338,5 @@ describe 'esa', ->
             http_opt['headers']['User-Agent'] = 'gingypurrs'
             http_opt
 
-        it 'responds with status 403', ->
-          expect(@res.statusCode).to.equal 403
+        it 'responds with status 401', ->
+          expect(@res.statusCode).to.equal 401
