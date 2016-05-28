@@ -150,7 +150,6 @@ describe 'esa', ->
         http_opt = opt_callback(http_opt)
 
       req = http.request http_opt, (response) => callback(response)
-      .on 'error', done
       req.write(body)
       req.end()
 
