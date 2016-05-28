@@ -301,8 +301,8 @@ describe 'esa', ->
             @res = response
             done()
 
-        it 'responds with status 403', ->
-          expect(@res.statusCode).to.equal 403
+        it 'responds with status 409', ->
+          expect(@res.statusCode).to.equal 409
 
         it 'not emit esa.webhook event', ->
           expect(emitted).to.equal false

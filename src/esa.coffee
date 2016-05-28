@@ -160,7 +160,7 @@ module.exports = (robot) ->
       res.end()
     .on 'duplicated', (err) ->
       robot.logger.warning err
-      res.writeHead(403)
+      res.writeHead(409)
       res.end()
     .handle (kind, data) ->
       robot.emit 'esa.webhook', kind, data
