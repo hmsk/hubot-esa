@@ -141,10 +141,12 @@ module.exports = (robot) ->
   robot.respond /esa stats/, (res) ->
     esa.getStats (stats) ->
       robot.emit 'esa.hear.stats', res, stats
+
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)(?!(\#comment-\d+))\b/, (res) ->
     unless res.match[1] == options.team then return
     esa.getPost res.match[2], (post) ->
       robot.emit 'esa.hear.post', res, post
+
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)\b/, (res) ->
     unless res.match[1] == options.team then return
     esa.getComment res.match[3], (comment) ->
