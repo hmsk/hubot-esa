@@ -3,6 +3,7 @@ chai = require 'chai'
 http = require 'http'
 nock = require 'nock'
 fs = require 'fs'
+crypto = require 'crypto'
 
 expect = chai.expect
 
@@ -20,6 +21,7 @@ describe 'esa', ->
     process.env.HUBOT_ESA_TEAM = 'ginger'
     process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM = 'general'
     process.env.HUBOT_ESA_WEBHOOK_ENDPOINT = '/hubot/ginger'
+    process.env.HUBOT_ESA_WEBHOOK_SECRET_TOKEN = 'purrs'
     # process.env.HUBOT_ESA_JUST_EMIT = 'true'
     room = helper.createRoom()
 
@@ -132,6 +134,30 @@ describe 'esa', ->
           ]
 
   describe 'Receive webhook', ->
+    executeWebhook = (fixture_name, callback, opt_callback) ->
+      body = JSON.stringify(JSON.parse(fs.readFileSync("#{__dirname}/fixtures/#{fixture_name}.json", 'utf-8')))
+      http_opt =
+        hostname: 'localhost'
+        port: 8039
+        path: '/hubot/ginger'
+        method: 'POST'
+        headers:
+          'Content-Type': 'application/json'
+          'User-Agent': 'esa-Hookshot/v1'
+          'X-Esa-Delivery': '1234'
+          'X-Esa-Signature': generateSignature(body)
+      unless opt_callback is undefined
+        http_opt = opt_callback(http_opt)
+
+      req = http.request http_opt, (response) => callback(response)
+      .on 'error', done
+      req.write(body)
+      req.end()
+
+    # https://docs.esa.io/posts/37#3-4-0
+    generateSignature = (body)->
+      'sha256=' + crypto.createHmac('sha256', process.env.HUBOT_ESA_WEBHOOK_SECRET_TOKEN).update(body, 'utf-8').digest('hex')
+
     http_opt = null
     emitted = null
     emitted_kind = null
@@ -146,15 +172,6 @@ describe 'esa', ->
         emitted_kind = kind
         emitted_data = data
       nock.enableNetConnect()
-      http_opt =
-        hostname: 'localhost'
-        port: 8039
-        path: '/hubot/ginger'
-        method: 'POST'
-        headers:
-          'Content-Type': 'application/json',
-          'User-Agent': 'esa-Hookshot/v1',
-          'X-Esa-Delivery': '1234'
 
     afterEach ->
       nock.disableNetConnect()
@@ -162,10 +179,9 @@ describe 'esa', ->
     describe 'as valid request', ->
       context 'with unknown formated body', ->
         beforeEach (done) ->
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write('{}')
-          req.end()
+          executeWebhook 'webhook_unknown', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -180,10 +196,9 @@ describe 'esa', ->
 
       context 'with post_create event data', ->
         beforeEach (done) ->
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_post_create.json"))
-          req.end()
+          executeWebhook 'webhook_post_create', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -201,10 +216,9 @@ describe 'esa', ->
 
       context 'with post_update event data', ->
         beforeEach (done) ->
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_post_update.json"))
-          req.end()
+          executeWebhook 'webhook_post_update', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -222,10 +236,9 @@ describe 'esa', ->
 
       context 'with post_archive event data', ->
         beforeEach (done) ->
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_post_archive.json"))
-          req.end()
+          executeWebhook 'webhook_post_archive', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -243,10 +256,9 @@ describe 'esa', ->
 
       context 'with comment_create event data', ->
         beforeEach (done) ->
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_comment_create.json"))
-          req.end()
+          executeWebhook 'webhook_comment_create', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -264,10 +276,9 @@ describe 'esa', ->
 
       context 'with member_join event data', ->
         beforeEach (done) ->
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_member_join.json"))
-          req.end()
+          executeWebhook 'webhook_member_join', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -287,10 +298,9 @@ describe 'esa', ->
         beforeEach (done) ->
           room.robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime()
           room.robot.brain.set 'esaWebhookDeliveries', ['1234']
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_member_join.json"))
-          req.end()
+          executeWebhook 'webhook_member_join', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -305,10 +315,9 @@ describe 'esa', ->
         beforeEach (done) ->
           room.robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime() - 3600 * 1000 * 24 * 3
           room.robot.brain.set 'esaWebhookDeliveries', ['1234']
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write(fs.readFileSync("#{__dirname}/fixtures/webhook_member_join.json"))
-          req.end()
+          executeWebhook 'webhook_member_join', (response) =>
+            @res = response
+            done()
 
         it 'responds with status 204', ->
           expect(@res.statusCode).to.equal 204
@@ -322,11 +331,12 @@ describe 'esa', ->
     describe 'as invalid request', ->
       context 'with unkown User-Agent', ->
         beforeEach (done) ->
-          http_opt['headers']['User-Agent'] = 'gingypurrs'
-          req = http.request http_opt, (@res) => done()
-          .on 'error', done
-          req.write('{}')
-          req.end()
+          executeWebhook 'webhook_member_join', (response) =>
+            @res = response
+            done()
+          , (http_opt) ->
+            http_opt['headers']['User-Agent'] = 'gingypurrs'
+            http_opt
 
         it 'responds with status 403', ->
           expect(@res.statusCode).to.equal 403

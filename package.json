@@ -38,5 +38,8 @@
     "sinon": "^1.13.0",
     "sinon-chai": "^2.7.0",
     "nock": "^8.0.0"
+  },
+  "dependencies": {
+    "crypto": "0.0.3"
   }
 }

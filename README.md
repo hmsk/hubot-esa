@@ -47,6 +47,7 @@ export HUBOT_ESA_TEAM_NAME='gingypurrs'         # Required, your team name
 export HUBOT_ESA_WEBHOOK_DEFAULT_ROOM='random'  # Required, room name you get notification by webhook
 export HUBOT_ESA_WEBHOOK_ENDPOINT='/ginger/esa' # Optional, Default: "/hubot/esa"
 export HUBOT_ESA_WEBHOOK_JUST_EMIT='true'       # Optional, Default: "false"
+export HUBOT_ESA_WEBHOOK_SECRET_TOKEN='true'    # Optional
 ```
 
 - `HUBOT_ESA_ACCESS_TOKEN`
@@ -64,12 +65,17 @@ export HUBOT_ESA_WEBHOOK_JUST_EMIT='true'       # Optional, Default: "false"
 - `HUBOT_ESA_WEBHOOK_ENDPOINT`
   - Optional (Default: `/hubot/esa`)
   - Set the path for endopoint receives webhook from esa.
-  - Configure your completed uri at `https://[your-team].esa.io/team/webhooks`
+  - Configure your completed uri at `https://[your-team].esa.io/team/webhooks` for Generic webhook
 
 - `HUBOT_ESA_JUST_EMIT`
   - Optional (Default: `false`)
   - If you set `true`, you can disable messaging
   - hubot-esa always triggers below custom events. so you can make customized behavior when receive webhooks
+
+- `HUBOT_ESA_WEBHOOK_SECRET_TOKEN`
+  - Optional
+  - If you set some text, hubot-esa verifies signature of request
+  - Same to secret you configured in `https://[your-team].esa.io/team/webhooks` for Generic webhook
 
 ## Custom Events
 

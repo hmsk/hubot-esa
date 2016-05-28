@@ -12,11 +12,14 @@
 #   HUBOT_ESA_TEAM
 #   HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
 #   HUBOT_ESA_WEBHOOK_ENDPOINT
+#   HUBOT_ESA_WEBHOOK_SECRET_TOKEN
 #   HUBOT_ESA_JUST_EMIT
 #
 # Author:
 #   hmsk <k.hamasaki@gmail.com>
 #
+
+crypto = require 'crypto'
 
 handleEsaWebhook = (payload) ->
   # https://docs.esa.io/posts/37
@@ -73,6 +76,7 @@ module.exports = (robot) ->
     room: process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
     endpoint: process.env.HUBOT_ESA_WEBHOOK_ENDPOINT || '/hubot/esa'
     just_emit: process.env.HUBOT_ESA_JUST_EMIT == 'true'
+    webhook_secret: process.env.HUBOT_ESA_WEBHOOK_SECRET_TOKEN
 
   return robot.logger.error "Missing configuration: HUBOT_ESA_TEAM" unless options.team?
   return robot.logger.error "Missing configuration: HUBOT_ESA_ACCESS_TOKEN" unless options.token?
@@ -87,6 +91,16 @@ module.exports = (robot) ->
       res.end()
       return
 
+    if options.webhook_secret
+      # https://docs.esa.io/posts/37#3-4-4
+      signature = 'sha256=' + crypto.createHmac('sha256', options.webhook_secret).update(JSON.stringify(req.body), 'utf-8').digest('hex')
+      unless req.headers['x-esa-signature'] is signature
+        robot.logger.warning "Requested with invalid signature: #{req.headers['x-esa-signature']} != #{signature}"
+        res.writeHead(401)
+        res.end()
+        return
+
+    # https://docs.esa.io/posts/37#3-4-3
     lastFlushedAt = robot.brain.get('esaWebhookLogsLastFlushedDateTime') or new Date().getTime() - 3600 * 1000 * 24 * 2
     if lastFlushedAt < (new Date().getTime() - 3600 * 1000 * 24)
       robot.brain.set 'esaWebhookDeliveries', []
