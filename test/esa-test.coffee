@@ -339,3 +339,15 @@ describe 'esa', ->
 
         it 'responds with status 401', ->
           expect(@res.statusCode).to.equal 401
+
+      context 'with invalid signature', ->
+        beforeEach (done) ->
+          executeWebhook 'webhook_member_join', (response) =>
+            @res = response
+            done()
+          , (http_opt) ->
+            http_opt['headers']['X-Esa-Signature'] = 'sha256-soinvalid'
+            http_opt
+
+        it 'responds with status 401', ->
+          expect(@res.statusCode).to.equal 401
