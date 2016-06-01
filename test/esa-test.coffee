@@ -105,23 +105,31 @@ describe 'esa', ->
       context 'in own team', ->
         emitted = false
         emitted_comment = null
+        emitted_post = null
         beforeEach (done) ->
-          room.robot.on 'esa.hear.comment', (res, comment) ->
+          room.robot.on 'esa.hear.comment', (res, comment, post) ->
             emitted = true
             emitted_comment = comment
+            emitted_post = post
           nockScope
             .get("/v1/teams/#{process.env.HUBOT_ESA_TEAM}/comments/2121")
             .query(access_token: process.env.HUBOT_ESA_ACCESS_TOKEN)
             .replyWithFile(200, "#{__dirname}/fixtures/comment.json")
+          nockScope
+            .get("/v1/teams/#{process.env.HUBOT_ESA_TEAM}/posts/1390")
+            .query(access_token: process.env.HUBOT_ESA_ACCESS_TOKEN)
+            .replyWithFile(200, "#{__dirname}/fixtures/post.json")
           room.user.say('gingy', 'https://ginger.esa.io/posts/1390#comment-2121')
           setTimeout done, 200
 
         it 'send message about comment', ->
-          expect(lastMessageBody()).contain("読みたい")
+          expect(lastMessageBody()).contain '読みたい'
+          expect(lastMessageBody()).contain 'hi!'
 
         it 'emits esa.hear.comment event with args', ->
           expect(emitted).to.equal true
           expect(emitted_comment.body_md).to.equal '読みたい'
+          expect(emitted_post.name).to.equal 'hi!'
 
       context 'in other team, someone says comment url', ->
         beforeEach (done) ->

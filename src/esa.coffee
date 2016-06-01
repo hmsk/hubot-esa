@@ -143,14 +143,17 @@ module.exports = (robot) ->
       robot.emit 'esa.hear.stats', res, stats
 
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)(?!(\#comment-\d+))\b/, (res) ->
-    unless res.match[1] == options.team then return
-    esa.getPost res.match[2], (post) ->
+    [_, team, post_id] = res.match
+    unless team == options.team then return
+    esa.getPost post_id, (post) ->
       robot.emit 'esa.hear.post', res, post
 
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)\b/, (res) ->
-    unless res.match[1] == options.team then return
-    esa.getComment res.match[3], (comment) ->
-      robot.emit 'esa.hear.comment', res, comment
+    [_, team, post_id, comment_id] = res.match
+    unless team == options.team then return
+    esa.getComment comment_id, (comment) ->
+      esa.getPost post_id, (post) ->
+        robot.emit 'esa.hear.comment', res, comment, post
 
   robot.router.post options.endpoint, (req, res) ->
     new EsaWebhook(robot.brain, req, options.webhook_secret)
@@ -174,12 +177,12 @@ module.exports = (robot) ->
       res.send "Members: #{stats.members}\nPosts: #{stats.posts}\nComments: #{stats.comments}\nStars: #{stats.stars}\nDaily Active Users: #{stats.daily_active_users}\nWeekly Active Users: #{stats.weekly_active_users}\nMonthly Active Users: #{stats.monthly_active_users}"
 
     robot.on 'esa.hear.post', (res, post) ->
-      mes = prefix_tori + "#{post.full_name}\nStars: #{post.stargazers_count}, Watchers: #{post.watchers_count}, Comments: #{post.comments_count}"
+      mes = prefix_tori + "Post: #{post.full_name}\nStars: #{post.stargazers_count}, Watchers: #{post.watchers_count}, Comments: #{post.comments_count}"
       mes += ", Tasks: #{post.done_tasks_count}/#{post.tasks_count}" if post.tasks_count > 0
       res.send  mes
 
-    robot.on 'esa.hear.comment', (res, comment) ->
-      res.send prefix_tori + "#{comment.body_md}"
+    robot.on 'esa.hear.comment', (res, comment, post) ->
+      res.send prefix_tori + "Comment for #{post.full_name}\n#{comment.body_md}"
 
     robot.on 'esa.webhook', (kind, data) ->
       robot.messageRoom options.room, prefix_tori + switch kind
