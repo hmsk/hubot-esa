@@ -104,11 +104,12 @@ robot.on 'esa.hear.post', (res, post) ->
 ### `esa.hear.comment`
 
 - Trigger by someone chats comment url
-- With `post` object: https://docs.esa.io/posts/102#8-2-0 and hubot Response object
+- With `comment` object: https://docs.esa.io/posts/102#8-2-0, `post` object: https://docs.esa.io/posts/102#7-2-0 and hubot Response object
 
 ```coffeescript
-robot.on 'esa.hear.comment', (res, comment) ->
+robot.on 'esa.hear.comment', (res, comment, post) ->
   console.log(comment)
+  console.log(post)
 ```
 
 ### `esa.webhook`
