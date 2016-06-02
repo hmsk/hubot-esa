@@ -1,11 +1,13 @@
 # Descriptipn
-#   Hubot script handle webhook and API of https://esa.io
+#  Hubot script handle webhook and API of https://esa.io
 #
 # Dependencies:
-#   None
+#  "crypto": "*"
 #
 # Commands:
-#    hubot esa stats - Retrieve stats of your team on esa
+#   hubot esa stats - Show stats of your team
+#   https://[yourteam].esa.io/posts/[post_id] - Show information of post
+#   https://[yourteam].esa.io/posts/[post_id]#comment-[comment_id] - Show comment
 #
 # Configuration:
 #   HUBOT_ESA_ACCESS_TOKEN
@@ -17,7 +19,6 @@
 #
 # Author:
 #   hmsk <k.hamasaki@gmail.com>
-#
 
 crypto = require 'crypto'
 
