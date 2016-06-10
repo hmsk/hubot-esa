@@ -12,6 +12,7 @@ process.env.EXPRESS_PORT = 8039
 
 describe 'esa', ->
   room = null
+  esaDeliveryKeyOfBrain = 'esaWebhookDeliveries'
 
   lastMessageBody = ()->
     room.messages[room.messages.length - 1][1]
@@ -171,6 +172,7 @@ describe 'esa', ->
     emitted_data = null
 
     beforeEach ->
+      room.robot.brain.set esaDeliveryKeyOfBrain, undefined
       emitted = false
       emitted_data = null
       emitted_kind = null
@@ -303,8 +305,7 @@ describe 'esa', ->
 
       context 'with recently and duplicated hooked data', ->
         beforeEach (done) ->
-          room.robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime()
-          room.robot.brain.set 'esaWebhookDeliveries', ['1234']
+          room.robot.brain.set esaDeliveryKeyOfBrain, { '1234': new Date().getTime() - 3600 * 1000 * 10 }
           executeWebhook 'webhook_member_join', (response) =>
             @res = response
             done()
@@ -320,8 +321,7 @@ describe 'esa', ->
 
       context 'with duplicated but old hooked data', ->
         beforeEach (done) ->
-          room.robot.brain.set 'esaWebhookLogsLastFlushedDateTime', new Date().getTime() - 3600 * 1000 * 24 * 3
-          room.robot.brain.set 'esaWebhookDeliveries', ['1234']
+          room.robot.brain.set esaDeliveryKeyOfBrain, { '1234': new Date().getTime() - 3600 * 1000 * 50 }
           executeWebhook 'webhook_member_join', (response) =>
             @res = response
             done()

@@ -24,7 +24,6 @@ crypto = require 'crypto'
 
 class EsaWebhook
   deliveriesKey = 'esaWebhookDeliveries'
-  flushedDateTimeKey = 'esaWebhookLogsLastFlushedDateTime'
 
   constructor: (@kvs, @request, @secret_token) ->
     @events =
@@ -48,21 +47,19 @@ class EsaWebhook
         return unauthorized "Requested with invalid signature: #{@request.headers['x-esa-signature']} != #{@signature}"
     next()
 
-  screen = (duplicated, next) ->
+  filterHistory = (duplicated, next) ->
     # https://docs.esa.io/posts/37#3-4-3
-    lastFlushedAt = @kvs.get(flushedDateTimeKey) or new Date().getTime() - 3600 * 1000 * 24 * 2
-    if lastFlushedAt < (new Date().getTime() - 3600 * 1000 * 24)
-      @kvs.set deliveriesKey, []
-      @kvs.set flushedDateTimeKey, new Date().getTime()
+    delivery = @request.headers['x-esa-delivery']
+    log = @kvs.get(deliveriesKey) or {}
+    log = {} if typeof log isnt 'object'
 
-    deliveries = @kvs.get(deliveriesKey) or []
-    delivered = @request.headers['x-esa-delivery']
-    if delivered
-      if deliveries.indexOf(delivered) > -1
-        return duplicated "Already received: #{delivered}"
-      else
-        deliveries.push delivered
-        @kvs.set deliveriesKey, deliveries
+    for delivery_id, delivered_datetime of log
+      delete log[delivery_id] if delivered_datetime < (new Date().getTime() - 3600 * 1000 * 24)
+    return duplicated "Already received: #{delivery}" if log[delivery]?
+
+    log[delivery] = new Date().getTime()
+    @kvs.set deliveriesKey, log
+
     next()
 
   parse = (result) ->
@@ -92,7 +89,7 @@ class EsaWebhook
       for unauthorized_callback in @events.unauthorized
         unauthorized_callback err
     , =>
-      screen.call @, (err) =>
+      filterHistory.call @, (err) =>
         for duplicated_callback in @events.duplicated
           duplicated_callback err
       , =>
