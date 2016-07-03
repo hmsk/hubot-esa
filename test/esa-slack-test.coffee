@@ -119,77 +119,49 @@ describe 'esa-slack', ->
           comment: webhook.comment || null
         return [webhook.kind, data]
 
-      context 'with post_create event', ->
-        beforeEach (done)->
-          [kind, @data] = buildWebhookArgs('post_create')
-          room.robot.emit 'esa.webhook', kind, @data
-          setTimeout done, 200
+      expectCommonFields = (emitted, actual) ->
+        expect(emitted.author_name).to.equal actual.user.screen_name
+        expect(emitted.author_icon).to.equal actual.user.icon.url
+        expect(emitted.title).to.equal actual.post.name
+        expect(emitted.title_link).to.equal actual.post.url
 
-        it 'emit slack.attachment with data', ->
-          content = emitted_data.content
-          expect(content.pretext).to.equal 'New post created'
-          expect(content.author_name).to.equal @data.user.screen_name
-          expect(content.author_icon).to.equal @data.user.icon.url
-          expect(content.title).to.equal @data.post.name
-          expect(content.title_link).to.equal @data.post.url
+      it 'emit slack.attachment for post_create', ->
+        [kind, data] = buildWebhookArgs('post_create')
+        room.robot.emit 'esa.webhook', kind, data
+        content = emitted_data.content
+        expectCommonFields(content, data)
+        expect(content.pretext).to.equal 'New post created'
+        expect(content.text).to.equal data.post.message
 
-          expect(content.text).to.equal @data.post.message
+        expect(emitted_data.channel).to.equal process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
 
-      context 'with post_update event', ->
-        beforeEach (done)->
-          [kind, @data] = buildWebhookArgs('post_update')
-          room.robot.emit 'esa.webhook', kind, @data
-          setTimeout done, 200
+      it 'emit slack.attachment for post_update', ->
+        [kind, data] = buildWebhookArgs('post_update')
+        room.robot.emit 'esa.webhook', kind, data
+        content = emitted_data.content
+        expectCommonFields(content, data)
+        expect(content.pretext).to.equal 'The post updated'
+        expect(content.text).to.equal data.post.message
 
-        it 'emit slack.attachment with data', ->
-          content = emitted_data.content
-          expect(content.pretext).to.equal 'The post updated'
-          expect(content.author_name).to.equal @data.user.screen_name
-          expect(content.author_icon).to.equal @data.user.icon.url
-          expect(content.title).to.equal @data.post.name
-          expect(content.title_link).to.equal @data.post.url
+      it 'emit slack.attachment for post_archive', ->
+        [kind, data] = buildWebhookArgs('post_archive')
+        room.robot.emit 'esa.webhook', kind, data
+        content = emitted_data.content
+        expectCommonFields(content, data)
+        expect(content.pretext).to.equal 'The post archived'
+        expect(content.text).to.be.undefined
 
-          expect(content.text).to.equal @data.post.message
+      it 'emit slack.attachment for comment_create', ->
+        [kind, data] = buildWebhookArgs('comment_create')
+        room.robot.emit 'esa.webhook', kind, data
+        content = emitted_data.content
+        expectCommonFields(content, data)
+        expect(content.pretext).to.equal 'The comment posted'
+        expect(content.text).to.equal data.comment.body_md
 
-      context 'with post_archive event', ->
-        beforeEach (done)->
-          [kind, @data] = buildWebhookArgs('post_archive')
-          room.robot.emit 'esa.webhook', kind, @data
-          setTimeout done, 200
-
-        it 'emit slack.attachment with data', ->
-          content = emitted_data.content
-          expect(content.pretext).to.equal 'The post archived'
-          expect(content.author_name).to.equal @data.user.screen_name
-          expect(content.author_icon).to.equal @data.user.icon.url
-          expect(content.title).to.equal @data.post.name
-          expect(content.title_link).to.equal @data.post.url
-
-          expect(content.text).to.be.undefined
-
-      context 'with comment_create event', ->
-        beforeEach (done)->
-          [kind, @data] = buildWebhookArgs('comment_create')
-          room.robot.emit 'esa.webhook', kind, @data
-          setTimeout done, 200
-
-        it 'emit slack.attachment with data', ->
-          content = emitted_data.content
-          expect(content.pretext).to.equal 'The comment posted'
-          expect(content.author_name).to.equal @data.user.screen_name
-          expect(content.author_icon).to.equal @data.user.icon.url
-          expect(content.title).to.equal @data.post.name
-          expect(content.title_link).to.equal @data.post.url
-
-          expect(content.text).to.equal @data.comment.body_md
-
-      context 'with member_join event', ->
-        beforeEach (done)->
-          [kind, @data] = buildWebhookArgs('member_join')
-          room.robot.emit 'esa.webhook', kind, @data
-          setTimeout done, 200
-
-        it 'emit slack.attachment with data', ->
-          content = emitted_data.content
-          expect(content.pretext).to.equal 'New member joined'
-          expect(content.text).to.equal @data.user.screen_name
+      it 'emit slack.attachment for member_join', ->
+        [kind, data] = buildWebhookArgs('member_join')
+        room.robot.emit 'esa.webhook', kind, data
+        content = emitted_data.content
+        expect(content.pretext).to.equal 'New member joined'
+        expect(content.text).to.equal data.user.screen_name

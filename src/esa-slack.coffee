@@ -30,6 +30,7 @@ module.exports = (robot) ->
         thumb_url: 'https://img.esa.io/uploads/production/pictures/105/6161/image/425c3b1e777d356c34973e818543420e.gif'
 
     emitSlackAttachment = (content, channel) ->
+      channel ?= process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
       att =
         channel: channel
         content: content
