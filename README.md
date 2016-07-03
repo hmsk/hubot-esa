@@ -49,29 +49,36 @@ export HUBOT_ESA_WEBHOOK_ENDPOINT='/ginger/esa' # Optional, Default: "/hubot/esa
 export HUBOT_ESA_WEBHOOK_SECRET_TOKEN='true'    # Optional
 ```
 
-- `HUBOT_ESA_ACCESS_TOKEN` **Required**
-  - Generate and set your "Personal access token" from `https://[your-team].esa.io/user/applications`.
+#### `HUBOT_ESA_ACCESS_TOKEN` Required
 
-- `HUBOT_ESA_TEAM_NAME` **Required**
-  - Set your team name
+- Generate and set your "Personal access token" from `https://[your-team].esa.io/user/applications`.
 
-- `HUBOT_ESA_WEBHOOK_DEFAULT_ROOM` **Required**
-  - Set channel/room.for webhook notification from esa as default e.g. `general`
+#### `HUBOT_ESA_TEAM_NAME` Required
 
-- `HUBOT_ESA_WEBHOOK_ENDPOINT` Optional (Default: `/hubot/esa`)
-  - Set the path for endopoint receives webhook from esa.
-  - Configure your completed uri at `https://[your-team].esa.io/team/webhooks` for Generic webhook
+- Set your team name
 
-- `HUBOT_ESA_WEBHOOK_SECRET_TOKEN` Optional
-  - If some text is set, hubot-esa verifies signature of HTTPS request by esa.io
-  - Same to secret you configured in `https://[your-team].esa.io/team/webhooks` for Generic webhook
+#### `HUBOT_ESA_WEBHOOK_DEFAULT_ROOM` Required
 
-- `HUBOT_ESA_JUST_EMIT` Optional (Default: `false`)
-  - If `true` is set, disables messaging
-  - hubot-esa always triggers below custom events. so you can make customized behavior when receive webhooks
+- Set channel/room.for webhook notification from esa as default e.g. `general`
 
-- `HUBOT_ESA_SLACK_DECORATOR` Optional (Default: `false`)
-  - If `true` is set, decorates message for Slack
+#### `HUBOT_ESA_WEBHOOK_ENDPOINT` Optional (Default: `/hubot/esa`)
+
+- Set the path for endopoint receives webhook from esa.
+- Configure your completed uri at `https://[your-team].esa.io/team/webhooks` for Generic webhook
+
+#### `HUBOT_ESA_WEBHOOK_SECRET_TOKEN` Optional
+
+- If some text is set, hubot-esa verifies signature of HTTPS request by esa.io
+- Same to secret you configured in `https://[your-team].esa.io/team/webhooks` for Generic webhook
+
+#### `HUBOT_ESA_JUST_EMIT` Optional (Default: `false`)
+
+- If `true` is set, disables messaging
+- hubot-esa always triggers below custom events. so you can make customized behavior when receive webhooks
+
+#### `HUBOT_ESA_SLACK_DECORATOR` Optional (Default: `false`)
+
+- If `true` is set, decorates message for Slack
 
 ## Use Built-in Slack Decorator
 
