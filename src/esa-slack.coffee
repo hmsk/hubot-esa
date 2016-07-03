@@ -30,7 +30,6 @@ module.exports = (robot) ->
         thumb_url: 'https://img.esa.io/uploads/production/pictures/105/6161/image/425c3b1e777d356c34973e818543420e.gif'
 
     emitSlackAttachment = (content, channel) ->
-      channel ?= '#notification'
       att =
         channel: channel
         content: content
