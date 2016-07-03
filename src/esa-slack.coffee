@@ -1,0 +1,116 @@
+# Descriptipn
+#   Hubot script decorated message from webhook of https://esa.io
+#
+# Dependencies:
+#   hubot-esa
+#   hubot-slack
+#
+# Commands:
+#   None
+#
+# Configuration:
+#   HUBOT_ESA_SLACK_DECORATOR
+#
+# Author:
+#   hmsk <k.hamasaki@gmail.com>
+#
+
+module.exports = (robot) ->
+  options =
+    enabled: process.env.HUBOT_ESA_SLACK_DECORATOR == 'true'
+
+  if options.enabled
+    # https://api.slack.com/docs/attachments
+    buildContent = (message) ->
+      content =
+        color: '#13958D' # Theme color from esa icon
+        fields: []
+        pretext: message
+        fallback: ''
+        thumb_url: 'https://img.esa.io/uploads/production/pictures/105/6161/image/425c3b1e777d356c34973e818543420e.gif'
+
+    emitSlackAttachment = (content, channel) ->
+      channel ?= '#notification'
+      att =
+        channel: channel
+        content: content
+      robot.emit 'slack.attachment', att
+
+    robot.on 'esa.webhook', (kind, data) ->
+      putUserAndPostToContent = (content, user, post) ->
+        content.author_name = user.screen_name
+        content.author_icon = user.icon.url
+        content.title = post.name
+        content.title_link = post.url
+
+      message_by_kind =
+        'post_create': 'New post created'
+        'post_update': 'The post updated'
+        'post_archive': 'The post archived'
+        'comment_create': 'The comment posted'
+        'member_join': 'New member joined'
+
+      content = buildContent message_by_kind[kind]
+      putUserAndPostToContent content, data.user, data.post unless kind is 'member_join'
+
+      switch kind
+        when 'post_create', 'post_update'
+          content.text = data.post.message
+        when 'comment_create'
+          content.text = data.comment.body_md
+        when 'member_join'
+          content.text = data.user.screen_name
+
+      emitSlackAttachment(content)
+
+    robot.on 'esa.hear.stats', (res, stats) ->
+      content = buildContent 'The stats of esa'
+      content.fields = [
+        {
+          title: 'Posts'
+          value: stats.posts
+          short: true
+        },
+        {
+          title: 'Comments'
+          value: stats.comments
+          short: true
+        },
+        {
+          title: 'Stars'
+          value: stats.stars
+          short: true
+        },
+        {
+          title: 'Daily Active Users'
+          value: stats.daily_active_users
+          short: true
+        },
+        {
+          title: 'Weekly Active Users'
+          value: stats.weekly_active_users
+          short: true
+        },
+        {
+          title: 'Monthly Active Users'
+          value: stats.monthly_active_users
+          short: true
+        }
+      ]
+      emitSlackAttachment(content, res.envelope.room)
+
+    robot.on 'esa.hear.post', (res, post) ->
+      content = buildContent ''
+      content.title = post.full_name
+      content.title_link = post.url
+      content.text = post.body_md
+      emitSlackAttachment(content, res.envelope.room)
+
+    robot.on 'esa.hear.comment', (res, comment, post) ->
+      content = buildContent ''
+      content.title = 'Comment for ' + post.full_name
+      content.title_link = comment.url
+      content.text = comment.body_md
+      content.author_name = comment.created_by.screen_name
+      content.author_icon = comment.created_by.icon
+      emitSlackAttachment(content, res.envelope.room)
