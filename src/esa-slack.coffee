@@ -64,38 +64,18 @@ module.exports = (robot) ->
 
     robot.on 'esa.hear.stats', (res, stats) ->
       content = buildContent 'The stats of esa'
-      content.fields = [
-        {
-          title: 'Posts'
-          value: stats.posts
-          short: true
-        },
-        {
-          title: 'Comments'
-          value: stats.comments
-          short: true
-        },
-        {
-          title: 'Stars'
-          value: stats.stars
-          short: true
-        },
-        {
-          title: 'Daily Active Users'
-          value: stats.daily_active_users
-          short: true
-        },
-        {
-          title: 'Weekly Active Users'
-          value: stats.weekly_active_users
-          short: true
-        },
-        {
-          title: 'Monthly Active Users'
-          value: stats.monthly_active_users
-          short: true
-        }
+      fields = [
+        { title: 'Posts', value: stats.posts }
+        { title: 'Comments', value: stats.comments }
+        { title: 'Stars', value: stats.stars }
+        { title: 'Daily Active Users', value: stats.daily_active_users }
+        { title: 'Weekly Active Users', value: stats.weekly_active_users }
+        { title: 'Monthly Active Users', value: stats.montly_active_users }
       ]
+      content.fields = fields.map (item, i) ->
+        item.short = true
+        item
+
       emitSlackAttachment(content, res.envelope.room)
 
     robot.on 'esa.hear.post', (res, post) ->
