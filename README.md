@@ -5,27 +5,18 @@
 
 A Hubot script handling webhooks and retrieving info from esa: https://esa.io
 
-## Features
+![hubot-esa-screen ](https://cloud.githubusercontent.com/assets/85887/16569333/2517c0e4-41ea-11e6-9cb8-b436ec1625df.gif)
 
-### Retrieve info when someone talking about URL of esa
-
-#### Post
-
-![image](https://cloud.githubusercontent.com/assets/85887/15594917/2779611a-236f-11e6-8636-1cf975c79048.png)
-
-#### Comment
-
-![image](https://cloud.githubusercontent.com/assets/85887/15594944/73b3c26e-236f-11e6-921b-7a78dadf0489.png)
-
-### Retrieve stats of your team
-
-- Command: `hubot esa stats`
-
-![image](https://cloud.githubusercontent.com/assets/85887/15595025/29e6acfe-2370-11e6-9564-6d62f3288701.png)
-
-### Handle webhooks
-
-![image](https://cloud.githubusercontent.com/assets/85887/15594882/c5362c18-236e-11e6-8b0f-736d07696933.png)
+- Handle received webhooks
+  - Post created
+  - Post update
+  - Post archived
+  - Comment created
+  - Member joined
+- Retrieve info when someone talking about URL of esa
+  - Post
+  - Comment
+- Retrieve stats of your team by `hubot esa stats`
 
 ## Installation
 
