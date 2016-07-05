@@ -20,15 +20,15 @@ A Hubot script handling webhooks and retrieving info from esa: https://esa.io
 
 ## Installation
 
+### Add to your Hubot project
+
 ```
 $ npm install hubot-esa --save
 ```
 
-And then add `hubot-esa` to your `external-scripts.json`.
+Then add `hubot-esa` to your `external-scripts.json`.
 
-Also you need some variables to environment your Hubot runs.
-
-### Add to your Hubot project
+Also you need some variables to environment your Hubot runs. See below.
 
 ### Base Settings
 
@@ -37,7 +37,7 @@ export HUBOT_ESA_ACCESS_TOKEN='access_token'    # Required, your personal access
 export HUBOT_ESA_TEAM_NAME='gingypurrs'         # Required, your team name
 export HUBOT_ESA_WEBHOOK_DEFAULT_ROOM='random'  # Required, room name you get notification by webhook
 export HUBOT_ESA_WEBHOOK_ENDPOINT='/ginger/esa' # Optional, Default: "/hubot/esa"
-export HUBOT_ESA_WEBHOOK_SECRET_TOKEN='true'    # Optional
+export HUBOT_ESA_WEBHOOK_SECRET_TOKEN='stoken'  # Optional
 ```
 
 #### `HUBOT_ESA_ACCESS_TOKEN` Required
