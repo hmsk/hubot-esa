@@ -143,7 +143,7 @@ data:
 
 ## Author
 
-- [@hmsk](http://hmsk.me) who is esa lover (\\( ⁰⊖⁰)/)
+- [@hmsk](http://hmsk.me) who is an esa lover (\\( ⁰⊖⁰)/)
 
 ## License
 
