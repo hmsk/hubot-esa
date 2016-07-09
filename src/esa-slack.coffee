@@ -71,7 +71,7 @@ module.exports = (robot) ->
         { title: 'Stars', value: stats.stars }
         { title: 'Daily Active Users', value: stats.daily_active_users }
         { title: 'Weekly Active Users', value: stats.weekly_active_users }
-        { title: 'Monthly Active Users', value: stats.montly_active_users }
+        { title: 'Monthly Active Users', value: stats.monthly_active_users }
       ]
       content.fields = fields.map (item, i) ->
         item.short = true
