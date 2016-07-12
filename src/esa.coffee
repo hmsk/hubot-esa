@@ -16,6 +16,7 @@
 #   HUBOT_ESA_WEBHOOK_ENDPOINT
 #   HUBOT_ESA_WEBHOOK_SECRET_TOKEN
 #   HUBOT_ESA_JUST_EMIT
+#   HUBOT_ESA_DEBUG
 #
 # Author:
 #   hmsk <k.hamasaki@gmail.com>
@@ -121,6 +122,7 @@ class EsaClientRobot
   getComment: (comment_id, callback) ->
     getRequest.call @, "/comments/#{comment_id}", callback
 
+
 module.exports = (robot) ->
   options =
     team: process.env.HUBOT_ESA_TEAM
@@ -129,31 +131,44 @@ module.exports = (robot) ->
     endpoint: process.env.HUBOT_ESA_WEBHOOK_ENDPOINT || '/hubot/esa'
     just_emit: process.env.HUBOT_ESA_JUST_EMIT == 'true'
     webhook_secret: process.env.HUBOT_ESA_WEBHOOK_SECRET_TOKEN
+    debug: process.env.HUBOT_ESA_DEBUG == 'true'
 
   return robot.logger.error "Missing configuration: HUBOT_ESA_TEAM" unless options.team?
   return robot.logger.error "Missing configuration: HUBOT_ESA_ACCESS_TOKEN" unless options.token?
   return robot.logger.error "Missing configuration: HUBOT_ESA_WEBHOOK_DEFAULT_ROOM" unless options.room?
 
+  debugLogger = (msg) ->
+    robot.logger.info "hubot-esa: #{msg}" if options.debug
+
+  debugLogger 'Enabled script'
+
   esa = new EsaClientRobot(robot, options.team, options.token)
 
   robot.respond /esa stats/, (res) ->
+    debugLogger 'heared stats command'
     esa.getStats (stats) ->
       robot.emit 'esa.hear.stats', res, stats
+      debugLogger "emit esa.hear.stats with stats:\n#{stats}"
 
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)(?!(\#comment-\d+))\b/, (res) ->
+    debugLogger 'heared post url'
     [_, team, post_id] = res.match
     unless team == options.team then return
     esa.getPost post_id, (post) ->
       robot.emit 'esa.hear.post', res, post
+      debugLogger "emit esa.hear.post with post:\n#{post}"
 
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)\b/, (res) ->
+    debugLogger 'heared comment url'
     [_, team, post_id, comment_id] = res.match
     unless team == options.team then return
     esa.getComment comment_id, (comment) ->
       esa.getPost post_id, (post) ->
         robot.emit 'esa.hear.comment', res, comment, post
+        debugLogger "emit esa.hear.comment with post:\n#{post}\n comment:\n#{comment}"
 
   robot.router.post options.endpoint, (req, res) ->
+    debugLogger "received a webhook by #{req.headers['user-agent']}"
     new EsaWebhook(robot.brain, req, options.webhook_secret)
     .on 'unauthorized', (err) ->
       robot.logger.warning err
@@ -164,6 +179,7 @@ module.exports = (robot) ->
       res.writeHead(409)
       res.end()
     .handle (kind, data) ->
+      debugLogger "emit esa.webhook with kind: #{kind}\n data:\n#{data}"
       robot.emit 'esa.webhook', kind, data
       res.writeHead(204)
       res.end()
