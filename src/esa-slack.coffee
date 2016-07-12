@@ -18,8 +18,10 @@
 module.exports = (robot) ->
   options =
     enabled: process.env.HUBOT_ESA_SLACK_DECORATOR == 'true'
+    default_room: process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
 
   if options.enabled
+    robot.emit 'esa.debug', 'Slack decorator enabled'
     # https://api.slack.com/docs/attachments
     buildContent = (message) ->
       content =
@@ -30,11 +32,12 @@ module.exports = (robot) ->
         thumb_url: 'https://img.esa.io/uploads/production/pictures/105/6161/image/425c3b1e777d356c34973e818543420e.gif'
 
     emitSlackAttachment = (content, channel) ->
-      channel ?= process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM
+      channel ?= options.default_room
       att =
         channel: channel
         content: content
       robot.emit 'slack.attachment', att
+      robot.emit 'esa.debug', "emit slack.attachment with\n#{att}"
 
     robot.on 'esa.webhook', (kind, data) ->
       putUserAndPostToContent = (content, user, post) ->
