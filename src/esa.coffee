@@ -148,7 +148,7 @@ module.exports = (robot) ->
     robot.emit 'esa.debug', 'heared stats command'
     esa.getStats (stats) ->
       robot.emit 'esa.hear.stats', res, stats
-      robot.emit 'esa.debug', "emit esa.hear.stats with stats:\n#{stats}"
+      robot.emit 'esa.debug', "emit esa.hear.stats with stats:\n#{JSON.stringify(stats)}"
 
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)(?!(\#comment-\d+))\b/, (res) ->
     robot.emit 'esa.debug', 'heared post url'
@@ -156,7 +156,7 @@ module.exports = (robot) ->
     unless team == options.team then return
     esa.getPost post_id, (post) ->
       robot.emit 'esa.hear.post', res, post
-      robot.emit 'esa.debug', "emit esa.hear.post with post:\n#{post}"
+      robot.emit 'esa.debug', "emit esa.hear.post with post:\n#{JSON.stringify(post)}"
 
   robot.hear /https:\/\/(.+)\.esa\.io\/posts\/(\d+)\#comment-(\d+)\b/, (res) ->
     robot.emit 'esa.debug', 'heared comment url'
@@ -165,7 +165,7 @@ module.exports = (robot) ->
     esa.getComment comment_id, (comment) ->
       esa.getPost post_id, (post) ->
         robot.emit 'esa.hear.comment', res, comment, post
-        robot.emit 'esa.debug', "emit esa.hear.comment with post:\n#{post}\n comment:\n#{comment}"
+        robot.emit 'esa.debug', "emit esa.hear.comment with post:\n#{JSON.stringify(post)}\n comment:\n#{JSON.stringify(comment)}"
 
   robot.router.post options.endpoint, (req, res) ->
     robot.emit 'esa.debug', "received a webhook by #{req.headers['user-agent']}"
@@ -179,7 +179,7 @@ module.exports = (robot) ->
       res.writeHead(409)
       res.end()
     .handle (kind, data) ->
-      robot.emit 'esa.debug', "emit esa.webhook with kind: #{kind}\n data:\n#{data}"
+      robot.emit 'esa.debug', "emit esa.webhook with kind: #{JSON.stringify(kind)}\n data:\n#{JSON.stringify(data)}"
       robot.emit 'esa.webhook', kind, data
       res.writeHead(204)
       res.end()
