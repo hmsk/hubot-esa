@@ -71,6 +71,10 @@ export HUBOT_ESA_WEBHOOK_SECRET_TOKEN='stoken'  # Optional
 
 - If `true` is set, decorates message for Slack
 
+#### `HUBOT_ESA_DEBUG` Optional (Default: `false`)
+
+- If `true`, then log receiving/emitting events
+
 ## Use Built-in Slack Decorator
 
 If you're using Hubot for Slack with [hubot-slack](https://www.npmjs.com/package/hubot-slack), you can use built-in Slack decorator implemented for `slack.attachment` event.
