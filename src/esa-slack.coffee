@@ -31,13 +31,11 @@ module.exports = (robot) ->
         fallback: ''
         thumb_url: 'https://img.esa.io/uploads/production/pictures/105/6161/image/425c3b1e777d356c34973e818543420e.gif'
 
-    emitSlackAttachment = (content, channel) ->
+    sendAsSlackAttachment = (content, channel) ->
       channel ?= options.default_room
-      att =
-        channel: channel
-        content: content
-      robot.emit 'slack.attachment', att
-      robot.emit 'esa.debug', "emit slack.attachment with\n#{att}"
+      robot.emit 'esa.debug', "emit slack.attachment with\n#{content}"
+
+      robot.messageRoom channel, attachments: [content]
 
     robot.on 'esa.webhook', (kind, data) ->
       putUserAndPostToContent = (content, user, post) ->
@@ -64,7 +62,7 @@ module.exports = (robot) ->
         when 'member_join'
           content.text = data.user.screen_name
 
-      emitSlackAttachment(content)
+      sendAsSlackAttachment(content)
 
     robot.on 'esa.hear.stats', (res, stats) ->
       content = buildContent 'The stats of esa'
@@ -80,14 +78,14 @@ module.exports = (robot) ->
         item.short = true
         item
 
-      emitSlackAttachment(content, res.envelope.room)
+      sendAsSlackAttachment(content, res.envelope.room)
 
     robot.on 'esa.hear.post', (res, post) ->
       content = buildContent ''
       content.title = post.full_name
       content.title_link = post.url
       content.text = post.body_md
-      emitSlackAttachment(content, res.envelope.room)
+      sendAsSlackAttachment(content, res.envelope.room)
 
     robot.on 'esa.hear.comment', (res, comment, post) ->
       content = buildContent ''
@@ -96,4 +94,4 @@ module.exports = (robot) ->
       content.text = comment.body_md
       content.author_name = comment.created_by.screen_name
       content.author_icon = comment.created_by.icon
-      emitSlackAttachment(content, res.envelope.room)
+      sendAsSlackAttachment(content, res.envelope.room)
