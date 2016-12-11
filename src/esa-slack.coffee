@@ -31,7 +31,7 @@ module.exports = (robot) ->
         fallback: ''
         thumb_url: 'https://img.esa.io/uploads/production/pictures/105/6161/image/425c3b1e777d356c34973e818543420e.gif'
 
-    sendAsSlackAttachment = (content, channel) ->
+    robot.on 'esa.slack.attachment', (content, channel) ->
       channel ?= options.default_room
       robot.emit 'esa.debug', "emit slack.attachment with\n#{content}"
 
@@ -62,7 +62,7 @@ module.exports = (robot) ->
         when 'member_join'
           content.text = data.user.screen_name
 
-      sendAsSlackAttachment(content)
+      robot.emit 'esa.slack.attachment', (content)
 
     robot.on 'esa.hear.stats', (res, stats) ->
       content = buildContent 'The stats of esa'
@@ -78,14 +78,14 @@ module.exports = (robot) ->
         item.short = true
         item
 
-      sendAsSlackAttachment(content, res.envelope.room)
+      robot.emit 'esa.slack.attachment', content, res.envelope.room
 
     robot.on 'esa.hear.post', (res, post) ->
       content = buildContent ''
       content.title = post.full_name
       content.title_link = post.url
       content.text = post.body_md
-      sendAsSlackAttachment(content, res.envelope.room)
+      robot.emit 'esa.slack.attachment', content, res.envelope.room
 
     robot.on 'esa.hear.comment', (res, comment, post) ->
       content = buildContent ''
@@ -94,4 +94,4 @@ module.exports = (robot) ->
       content.text = comment.body_md
       content.author_name = comment.created_by.screen_name
       content.author_icon = comment.created_by.icon
-      sendAsSlackAttachment(content, res.envelope.room)
+      robot.emit 'esa.slack.attachment', content, res.envelope.room
