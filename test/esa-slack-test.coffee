@@ -188,7 +188,7 @@ describe 'esa-slack', ->
               done()
             , 150
 
-          # title[#api, #dev] && available[#dev] -> notify to [#dev]
+          # title[#api, #dev, #fun] && available+is_member[#dev] -> notify to [#dev]
           it 'channels which are appeared as tags on title asynchronously', (done) ->
             [kind, data] = buildWebhookArgs('post_update_with_tags')
             room.robot.emit 'esa.webhook', kind, data

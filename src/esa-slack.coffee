@@ -49,7 +49,8 @@ module.exports = (robot) ->
             if response.statusCode is 200
               availableChannels = []
               for availableChannel in JSON.parse(body).channels
-                availableChannels.push availableChannel.name
+                if availableChannel.is_member
+                  availableChannels.push availableChannel.name
 
               tagsPattern = /#(\w+)/g
               while (matches = tagsPattern.exec(content.title))
