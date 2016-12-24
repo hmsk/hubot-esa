@@ -1,6 +1,6 @@
 {
   "name": "hubot-esa",
-  "version": "0.5.0-pre",
+  "version": "0.5.0",
   "description": "A Hubot script handling webhooks and retrieving info from esa: https://esa.io",
   "author": "Kengo Hamasaki <k.hamasaki@gmail.com>",
   "license": "MIT",
