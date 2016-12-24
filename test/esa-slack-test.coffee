@@ -10,7 +10,8 @@ helper = new Helper '../src/esa-slack.coffee'
 describe 'esa-slack', ->
   room = null
   response = null
-  nockScope = null
+  fetchingSlackChannelsOnLoad = null
+  slackChannelsCacheKey = 'esaWebhookSlackChannels'
 
   initializingKeyword = 'esa mock response object'
   initializingMessage = '@hubot' + initializingKeyword
@@ -25,6 +26,17 @@ describe 'esa-slack', ->
     room.robot.respond initializingKeyword, (res) -> response = res
     room.user.say 'gingy', initializingMessage
 
+    room.robot.brain.set slackChannelsCacheKey,
+      channels: ['dev'],
+      savedAt: new Date().getTime()
+
+  mockFetchingChannelList = ->
+    nock('https://slack.com')
+      .get("/api/channels.list")
+      .query(token: process.env.HUBOT_SLACK_TOKEN, exclude_archived: '1')
+      .once()
+      .replyWithFile(200, "#{__dirname}/fixtures/channels.json")
+
   beforeEach ->
     process.env.HUBOT_ESA_ACCESS_TOKEN = 'dummy'
     process.env.HUBOT_ESA_TEAM = 'ginger'
@@ -35,10 +47,7 @@ describe 'esa-slack', ->
     process.env.HUBOT_SLACK_TOKEN = 'xoxo-'
 
     nock.disableNetConnect()
-    nockScope = nock('https://slack.com')
-    .get("/api/channels.list")
-    .query(token: process.env.HUBOT_SLACK_TOKEN, exclude_archived: '1')
-    .replyWithFile(200, "#{__dirname}/fixtures/channels.json")
+    fetchingSlackChannelsOnLoad = mockFetchingChannelList()
 
   afterEach ->
     nock.cleanAll()
@@ -50,6 +59,9 @@ describe 'esa-slack', ->
 
     afterEach ->
       room.destroy()
+
+    it 'should not try to restore cache of slack channels', ->
+      expect(fetchingSlackChannelsOnLoad.isDone()).to.be.false
 
     context 'emit esa.hear.stats event', ->
       beforeEach (done)->
@@ -67,6 +79,9 @@ describe 'esa-slack', ->
 
     afterEach ->
       room.destroy()
+
+    it 'should try to restore cache of slack channels', ->
+      expect(fetchingSlackChannelsOnLoad.isDone()).to.be.true
 
     context 'emit esa.hear.stats event', ->
       beforeEach (done)->
@@ -197,6 +212,45 @@ describe 'esa-slack', ->
             [kind, data] = buildWebhookArgs('post_update_with_dirname')
             room.robot.emit 'esa.webhook', kind, data
             expect(selectedChannels).to.have.members ['dev']
+
+          it 'should not restore cache of channel list if that is not stale', (done) ->
+            refetchingCacheForStale = mockFetchingChannelList()
+
+            [kind, data] = buildWebhookArgs('post_update')
+            room.robot.emit 'esa.webhook', kind, data
+
+            brain = room.robot.brain
+            cache = brain.get slackChannelsCacheKey
+            lastSavedTime = cache.savedAt
+
+            setTimeout ->
+              expect(refetchingCacheForStale.isDone()).to.be.false
+              cache = brain.get slackChannelsCacheKey
+              expect(cache.savedAt).to.eql lastSavedTime
+              done()
+            , 200
+
+          it 'should restore cache of channel list if that is stale', (done) ->
+            refetchingCacheForStale = mockFetchingChannelList()
+
+            [kind, data] = buildWebhookArgs('post_update')
+            room.robot.emit 'esa.webhook', kind, data
+
+            brain = room.robot.brain
+            cache = brain.get slackChannelsCacheKey
+            oldTime = new Date().getTime() - 3600 * 1000 * 24 * 2
+            cache.savedAt = oldTime
+            brain.set slackChannelsCacheKey, cache
+
+            [kind, data] = buildWebhookArgs('post_update')
+            room.robot.emit 'esa.webhook', kind, data
+
+            setTimeout ->
+              expect(refetchingCacheForStale.isDone()).to.be.true
+              cache = brain.get slackChannelsCacheKey
+              expect(cache.savedAt).not.to.eql oldTime
+              done()
+            , 200
 
         context 'disabled selector', ->
           beforeEach ->

@@ -39,6 +39,11 @@ class ChannelSelector
 
           kvs.set slackChannelsCacheKey, cache
 
+  @refetchSlackChannelCacheIfNeeded: (robot, slack_token) ->
+    cache = robot.brain.get(slackChannelsCacheKey) or {}
+    if 'savedAt' of cache and (cache.savedAt  < new Date().getTime() - 3600 * 1000 * 24)
+      ChannelSelector.fetchSlackChannels(robot, slack_token)
+
   _getCachedAvailableChannels = ->
     cache = @kvs.get(slackChannelsCacheKey) or {}
     unless 'channels' of cache
@@ -126,6 +131,8 @@ module.exports = (robot) ->
           content.text = data.user.screen_name
 
       robot.emit 'esa.slack.attachment', content, channelsByWebhookContent(content)
+      if options.slack_token
+        ChannelSelector.refetchSlackChannelCacheIfNeeded(robot, options.slack_token)
 
     robot.on 'esa.hear.stats', (res, stats) ->
       content = buildContent 'The stats of esa'
