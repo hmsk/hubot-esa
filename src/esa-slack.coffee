@@ -15,6 +15,36 @@
 #   hmsk <k.hamasaki@gmail.com>
 #
 
+class ChannelSelector
+  constructor: (@robot, @entry_title, @slack_token) ->
+
+  select: (default_channels, callback) ->
+    channels = []
+    @robot.http('https://slack.com/api/channels.list')
+      .query({token: @slack_token, exclude_archived: '1'})
+      .header('Accept', 'application/json')
+      .get() (error, response, body) =>
+        if response.statusCode is 200
+          availableChannels = []
+          for availableChannel in JSON.parse(body).channels
+            if availableChannel.is_member
+              availableChannels.push availableChannel.name
+
+          tagsPattern = /#(\w+)/g
+          while (matches = tagsPattern.exec(@entry_title))
+            channels.push matches[1]
+
+          channels = channels.filter (channel) ->
+            availableChannels.indexOf(channel) > -1
+
+          if channels.length == 0
+            dirsPattern = /\/{0,1}(\w+)\//g
+            while (matches = dirsPattern.exec(@entry_title))
+              channels = [matches[1]] if availableChannels.indexOf(matches[1]) > -1
+
+          channels = default_channels if channels.length == 0
+          callback(channels)
+
 module.exports = (robot) ->
   options =
     enabled: process.env.HUBOT_ESA_SLACK_DECORATOR == 'true'
@@ -37,35 +67,12 @@ module.exports = (robot) ->
       for channel in channels
         robot.messageRoom channel, attachments: [content]
 
-    channelsByPost = (content, callback) ->
+    channelsByWebhookContent = (content, callback) ->
       defaultChannels = [options.default_room]
-
       if content.title and process.env.HUBOT_ESA_SLACK_ROOM_SELECTOR == 'true'
-        channels = []
-        robot.http('https://slack.com/api/channels.list')
-          .query({token: options.slack_token, exclude_archived: '1'})
-          .header('Accept', 'application/json')
-          .get() (error, response, body) ->
-            if response.statusCode is 200
-              availableChannels = []
-              for availableChannel in JSON.parse(body).channels
-                if availableChannel.is_member
-                  availableChannels.push availableChannel.name
-
-              tagsPattern = /#(\w+)/g
-              while (matches = tagsPattern.exec(content.title))
-                channels.push matches[1]
-
-              channels = channels.filter (channel) ->
-                availableChannels.indexOf(channel) > -1
-
-              if channels.length == 0
-                dirsPattern = /\/{0,1}(\w+)\//g
-                while (matches = dirsPattern.exec(content.title))
-                  channels = [matches[1]] if availableChannels.indexOf(matches[1]) > -1
-
-              channels = defaultChannels if channels.length == 0
-              callback(channels)
+        selector = new ChannelSelector(robot, content.title, options.slack_token)
+        selector.select defaultChannels, (selectedChannels) ->
+          callback(selectedChannels)
       else
         callback(defaultChannels)
 
@@ -94,8 +101,8 @@ module.exports = (robot) ->
         when 'member_join'
           content.text = data.user.screen_name
 
-      channelsByPost content, (channels) ->
-        robot.emit 'esa.slack.attachment', content, channels
+      channelsByWebhookContent content, (targetChannels) ->
+        robot.emit 'esa.slack.attachment', content, targetChannels
 
     robot.on 'esa.hear.stats', (res, stats) ->
       content = buildContent 'The stats of esa'
