@@ -10,6 +10,7 @@ helper = new Helper '../src/esa-slack.coffee'
 describe 'esa-slack', ->
   room = null
   response = null
+  nockScope = null
 
   initializingKeyword = 'esa mock response object'
   initializingMessage = '@hubot' + initializingKeyword
@@ -31,7 +32,16 @@ describe 'esa-slack', ->
     process.env.HUBOT_ESA_WEBHOOK_ENDPOINT = '/hubot/ginger'
     process.env.HUBOT_ESA_WEBHOOK_SECRET_TOKEN = 'purrs'
     process.env.HUBOT_ESA_JUST_EMIT = 'true'
-    process.env.HUBOT_ESA_ACCESS_TOKEN = 'xoxo-'
+    process.env.HUBOT_SLACK_TOKEN = 'xoxo-'
+
+    nock.disableNetConnect()
+    nockScope = nock('https://slack.com')
+    .get("/api/channels.list")
+    .query(token: process.env.HUBOT_SLACK_TOKEN, exclude_archived: '1')
+    .replyWithFile(200, "#{__dirname}/fixtures/channels.json")
+
+  afterEach ->
+    nock.cleanAll()
 
   context 'disabled by env value', ->
     beforeEach ->
@@ -162,49 +172,31 @@ describe 'esa-slack', ->
 
       describe 'emit messaging event with', ->
         selectedChannels = null
-        nockScope = null
         beforeEach ->
-          nock.disableNetConnect()
-          nockScope = nock('https://slack.com')
-            .get("/api/channels.list")
-            .query(token: process.env.HUBOT_SLACK_TOKEN, exclude_archived: '1')
-            .replyWithFile(200, "#{__dirname}/fixtures/channels.json")
           room.robot.on 'esa.slack.attachment', (content, channels) ->
             selectedChannels = channels
-
-        afterEach ->
-          nock.cleanAll()
 
         context 'enabled selector', ->
           beforeEach ->
             process.env.HUBOT_ESA_SLACK_ROOM_SELECTOR = 'true'
 
           # title[] -> notify to [default]
-          it 'default channel for the post without any tag asynchronously', (done) ->
+          it 'default channel for the post without any tag asynchronously', ->
             [kind, data] = buildWebhookArgs('post_update')
             room.robot.emit 'esa.webhook', kind, data
-            setTimeout ->
-              expect(selectedChannels).to.have.members [process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM]
-              done()
-            , 150
+            expect(selectedChannels).to.have.members [process.env.HUBOT_ESA_WEBHOOK_DEFAULT_ROOM]
 
           # title[#api, #dev, #fun] && available+is_member[#dev] -> notify to [#dev]
-          it 'channels which are appeared as tags on title asynchronously', (done) ->
+          it 'channels which are appeared as tags on title asynchronously', ->
             [kind, data] = buildWebhookArgs('post_update_with_tags')
             room.robot.emit 'esa.webhook', kind, data
-            setTimeout ->
-              expect(selectedChannels).to.have.members ['dev']
-              done()
-            , 150
+            expect(selectedChannels).to.have.members ['dev']
 
           # title: /dev/some-title && available[#dev] -> notify to [#dev]
-          it 'channels which are appeared as dirname on title asynchronously', (done) ->
+          it 'channels which are appeared as dirname on title asynchronously', ->
             [kind, data] = buildWebhookArgs('post_update_with_dirname')
             room.robot.emit 'esa.webhook', kind, data
-            setTimeout ->
-              expect(selectedChannels).to.have.members ['dev']
-              done()
-            , 150
+            expect(selectedChannels).to.have.members ['dev']
 
         context 'disabled selector', ->
           beforeEach ->
