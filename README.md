@@ -86,6 +86,30 @@ export HUBOT_ESA_WEBHOOK_JUST_EMIT='true'       # Optional, Default: "false"
 export HUBOT_ESA_SLACK_DECORATOR='true'         # Optional, Default: "false"
 ```
 
+### Enable Channel Selector for Slack
+
+Select notified channel(room) dynamically by title of post on esa.
+
+```
+export HUBOT_ESA_SLACK_ROOM_SELECTOR='true'     # Optional, Default: "false"
+```
+
+If title includes tags like `#dev` `#programming` and channel which corresponds with that tag exist, notifications will be posted to each channels.
+
+When not exist, try to find deepest directory name which corresponds with channel.
+
+e.g. There are 3 channels in Slack: `#dev`, `#programming`, `web` (private)
+
+| Title of post on esa  | Notified Channel |
+| ------------- | ------------- |
+| `awesome article` | default room |
+| `awesome article #dev #programming` | `#dev` `#programming` |
+| `awesome article #dev #programming #ruby #web` | `#dev` `#programming` `web`|
+| `dev/awesome article` | `#dev` |
+| `dev/programming/awesome article` | `#programming` |
+
+hubot must exist in each channels which is be notified.
+
 ## Handle event listener manually
 
 You can implement your script handles above events. For example your can build original message on your own :)
