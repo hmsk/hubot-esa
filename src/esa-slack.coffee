@@ -6,7 +6,8 @@
 #   hubot-slack
 #
 # Commands:
-#   None
+#   hubot esa channel list - Show cache data of channel list
+#   hubot esa channel restore - Fetch brand new channel list immediately
 #
 # Configuration:
 #   HUBOT_ESA_SLACK_DECORATOR
@@ -15,9 +16,9 @@
 #   hmsk <k.hamasaki@gmail.com>
 #
 
-class ChannelSelector
-  slackChannelsCacheKey = 'esaWebhookSlackChannels'
+slackChannelsCacheKey = 'esaWebhookSlackChannels'
 
+class ChannelSelector
   constructor: (@robot) ->
     @kvs = @robot.brain
 
@@ -165,3 +166,11 @@ module.exports = (robot) ->
       content.author_name = comment.created_by.screen_name
       content.author_icon = comment.created_by.icon
       robot.emit 'esa.slack.attachment', content, [res.envelope.room]
+
+    robot.respond /esa channel list/, (res) ->
+      list = JSON.stringify(robot.brain.get(slackChannelsCacheKey) or {})
+      res.reply "```\n#{list.replace(/\r\n/g, '\n')}\n```"
+
+    robot.respond /esa channel restore/, (res) ->
+      ChannelSelector.fetchSlackChannels(robot, options.slack_token)
+      res.reply "Kicked Restore :wink:"

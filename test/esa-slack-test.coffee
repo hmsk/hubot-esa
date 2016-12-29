@@ -19,7 +19,7 @@ describe 'esa-slack', ->
   lastSentAttachment = ()->
     room.messages[room.messages.length - 1][1].attachments[0]
 
-  initializeRoom = ->
+  initializeRoom = (done) ->
     room = helper.createRoom()
     # Build response object manually
     response = null
@@ -29,6 +29,8 @@ describe 'esa-slack', ->
     room.robot.brain.set slackChannelsCacheKey,
       channels: ['dev'],
       savedAt: new Date().getTime()
+
+    setTimeout done, 100
 
   mockFetchingChannelList = ->
     nock('https://slack.com')
@@ -53,9 +55,9 @@ describe 'esa-slack', ->
     nock.cleanAll()
 
   context 'disabled by env value', ->
-    beforeEach ->
+    beforeEach (done) ->
       process.env.HUBOT_ESA_SLACK_DECORATOR = 'false'
-      initializeRoom()
+      initializeRoom(done)
 
     afterEach ->
       room.destroy()
@@ -73,9 +75,9 @@ describe 'esa-slack', ->
         expect(room.messages[room.messages.length - 1][1]).to.equal initializingMessage
 
   context 'enabled by env value', ->
-    beforeEach ->
+    beforeEach (done) ->
       process.env.HUBOT_ESA_SLACK_DECORATOR = 'true'
-      initializeRoom()
+      initializeRoom(done)
 
     afterEach ->
       room.destroy()
@@ -265,6 +267,14 @@ describe 'esa-slack', ->
               expect(refetchingCacheForStale.isDone()).to.be.true
               cache = brain.get slackChannelsCacheKey
               expect(cache.savedAt).not.to.eql oldTime
+              done()
+            , 200
+
+          it 'should restore cache of channel list if kicked', (done) ->
+            refetchingCacheForStale = mockFetchingChannelList()
+            room.user.say('gingy', '@hubot esa channel restore')
+            setTimeout ->
+              expect(refetchingCacheForStale.isDone()).to.be.true
               done()
             , 200
 
