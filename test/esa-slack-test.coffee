@@ -213,6 +213,22 @@ describe 'esa-slack', ->
             room.robot.emit 'esa.webhook', kind, data
             expect(selectedChannels).to.have.members ['dev']
 
+          it 'should store cache of channel list if cahe does not exist', (done) ->
+            refetchingCacheForStale = mockFetchingChannelList()
+
+            brain = room.robot.brain
+            brain.remove slackChannelsCacheKey
+
+            [kind, data] = buildWebhookArgs('post_update')
+            room.robot.emit 'esa.webhook', kind, data
+
+            setTimeout ->
+              expect(refetchingCacheForStale.isDone()).to.be.true
+              cache = brain.get slackChannelsCacheKey
+              expect(cache).to.have.exist
+              done()
+            , 200
+
           it 'should not restore cache of channel list if that is not stale', (done) ->
             refetchingCacheForStale = mockFetchingChannelList()
 

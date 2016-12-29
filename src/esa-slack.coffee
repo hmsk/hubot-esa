@@ -41,7 +41,7 @@ class ChannelSelector
 
   @refetchSlackChannelCacheIfNeeded: (robot, slack_token) ->
     cache = robot.brain.get(slackChannelsCacheKey) or {}
-    if 'savedAt' of cache and (cache.savedAt  < new Date().getTime() - 3600 * 1000 * 24)
+    if !('savedAt' of cache) || cache.savedAt  < new Date().getTime() - 3600 * 1000 * 24
       ChannelSelector.fetchSlackChannels(robot, slack_token)
 
   _getCachedAvailableChannels = ->
